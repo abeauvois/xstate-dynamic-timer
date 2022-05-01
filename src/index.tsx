@@ -12,7 +12,12 @@ const Timer = () => {
   return (
     <section>
       <label>
-        <span>Elapsed time:</span>
+        <span>
+          {" "}
+          {state.matches("paused")
+            ? `Elapsed time: PAUSED`
+            : "Elapsed time:"}{" "}
+        </span>
         <output>
           {elapsed.toFixed(1)}s / {duration.toFixed(1)}s
         </output>
