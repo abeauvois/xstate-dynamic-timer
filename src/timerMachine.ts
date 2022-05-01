@@ -28,15 +28,7 @@ export const timerMachine = createMachine<TimerContext, TimerEvent>({
   states: {
     running: {
       invoke: {
-        src: context => cb => {
-          const interval = setInterval(() => {
-            cb("TICK");
-          }, 1000 * context.interval);
-
-          return () => {
-            clearInterval(interval);
-          };
-        }
+        src: 'timer',
       },
       on: {
         "": {
@@ -71,6 +63,18 @@ export const timerMachine = createMachine<TimerContext, TimerEvent>({
       actions: assign<TimerContext>({
         elapsed: 0
       })
+    }
+  }
+}, {
+  services: {
+    timer: context => cb => {
+      const interval = setInterval(() => {
+        cb("TICK");
+      }, 1000 * context.interval);
+
+      return () => {
+        clearInterval(interval);
+      };
     }
   }
 });
