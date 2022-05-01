@@ -25,12 +25,13 @@ const Timer = () => {
           min={0}
           max={30}
           value={duration}
-          onChange={e => {
+          onChange={(e) => {
             send("DURATION.UPDATE", { value: +e.target.value });
           }}
         />
       </label>
-      <button onClick={_ => send("RESET")}>Reset</button>
+      <button onClick={(_) => send("RESET")}>Reset</button>
+      <button onClick={(_) => send("RESET")}>Reset</button>
     </section>
   );
 };
