@@ -15,6 +15,10 @@ type TimerEvent =
       value: number;
     }
   | {
+      type: "DURATION.INCREASE";
+      value: number;
+    }
+  | {
       type: "RESET";
     };
 
@@ -57,6 +61,11 @@ export const timerMachine = createMachine<TimerContext, TimerEvent>(
       "DURATION.UPDATE": {
         actions: assign({
           duration: (_, event) => event.value
+        })
+      },
+      "DURATION.INCREASE": {
+        actions: assign({
+          duration: (context, event) => context.duration + event.value
         })
       },
       RESET: {

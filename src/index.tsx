@@ -36,7 +36,9 @@ const Timer = () => {
         />
       </label>
       <button onClick={(_) => send("RESET")}>Reset</button>
-      <button onClick={(_) => send("RESET")}>Reset</button>
+      <button onClick={() => send("DURATION.INCREASE", { value: 10 })}>
+        Increase 10s
+      </button>
     </section>
   );
 };
