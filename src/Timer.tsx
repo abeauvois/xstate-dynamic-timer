@@ -29,12 +29,12 @@ export const Timer = () => {
           max={30}
           value={duration}
           onChange={(e) => {
-            send("updateDuration", { value: +e.target.value });
+            send("updateDuration", { duration: +e.target.value });
           }}
         />
       </label>
       <button onClick={(_) => send("resetElapsed")}>Reset</button>
-      <button onClick={() => send("increaseDuration", { value: 10 })}>
+      <button onClick={() => send("increaseDuration", { duration: 10 })}>
         Increase 10s
       </button>
     </section>
