@@ -5,10 +5,10 @@ import { Timer } from "./Timer";
 
 const App = () => {
   return (
-  <>
-  <Timer />
-  <Timer />
-  </>
+    <>
+      <Timer username="Noa Judoka" />
+      <Timer username="Leo Delaho" />
+    </>
   );
 };
 

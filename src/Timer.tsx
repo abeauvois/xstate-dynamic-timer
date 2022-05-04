@@ -2,13 +2,20 @@ import * as React from "react";
 import { useMachine } from "@xstate/react";
 import { timerMachine } from "./timerMachine";
 
-export const Timer = () => {
+type Props = {
+  username: string;
+};
+
+export const Timer = (props: Props) => {
   const [state, send] = useMachine(timerMachine);
 
   const { elapsed, duration } = state.context;
 
   return (
     <section>
+      <label style={{ textAlign: "center", fontSize: 32 }}>
+        {props.username || "unkown"}
+      </label>
       <label>
         <span>
           {" "}
