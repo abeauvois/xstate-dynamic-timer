@@ -1,12 +1,14 @@
 import * as React from "react";
 import { useMachine } from "@xstate/react";
 import { timerMachine } from "./timerMachine";
+import type { User, Task } from "./Types";
 
-type Props = {
-  username: string;
+export type ActivityProps = {
+  user: User;
+  task: Task;
 };
 
-export const Timer = (props: Props) => {
+export const Activity = (props: ActivityProps) => {
   const [state, send] = useMachine(timerMachine);
 
   const { elapsed, duration } = state.context;
@@ -14,8 +16,12 @@ export const Timer = (props: Props) => {
   return (
     <section>
       <label style={{ textAlign: "center", fontSize: 32 }}>
-        {props.username || "unkown"}
+        {props.user.username || "unkown"}
       </label>
+      <span style={{ textAlign: "center", fontSize: 32 }}>
+        {props.task.name || "unkown task name"}
+        <span> {props.task.duration.toFixed(1)}</span>
+      </span>
       <label>
         <span>
           {" "}
