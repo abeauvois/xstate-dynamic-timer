@@ -1,50 +1,15 @@
 import "./styles.scss";
 import * as React from "react";
 import * as ReactDOM from "react-dom";
-import { useMachine } from "@xstate/react";
-import { timerMachine } from "./timerMachine";
-
-const Timer = () => {
-  const [state, send] = useMachine(timerMachine);
-
-  const { elapsed, duration } = state.context;
-
-  return (
-    <section>
-      <label>
-        <span>
-          {" "}
-          {state.matches("paused")
-            ? `Elapsed time: PAUSED`
-            : "Elapsed time:"}{" "}
-        </span>
-        <output>
-          {elapsed.toFixed(1)}s / {duration.toFixed(1)}s
-        </output>
-        <progress max={duration} value={elapsed} />
-      </label>
-      <label>
-        <span>Duration:</span>
-        <input
-          type="range"
-          min={0}
-          max={30}
-          value={duration}
-          onChange={(e) => {
-            send("DURATION.UPDATE", { value: +e.target.value });
-          }}
-        />
-      </label>
-      <button onClick={(_) => send("RESET")}>Reset</button>
-      <button onClick={() => send("DURATION.INCREASE", { value: 10 })}>
-        Increase 10s
-      </button>
-    </section>
-  );
-};
+import { Timer } from "./Timer";
 
 const App = () => {
-  return <Timer />;
+  return (
+  <>
+  <Timer />
+  <Timer />
+  </>
+  );
 };
 
 const rootElement = document.getElementById("root");

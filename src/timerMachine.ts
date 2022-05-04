@@ -1,39 +1,29 @@
-import { createMachine, assign } from "xstate";
+import { createModel } from "xstate/lib/model";
 
-interface TimerContext {
-  elapsed: number;
-  duration: number;
-  interval: number;
-}
+const timerModel = createModel(
+  {
+    elapsed: 0,
+    duration: 5,
+    interval: 0.1
+  },
+  {
+    events: {
+      updateDuration: (duration: number) => ({ duration }),
+      increaseDuration: (duration: number) => ({ duration }),
+      TICK: (value: number) => ({ value }),
+      resetElapsed: (value: number) => ({ value })
+    }
+  }
+);
 
-type TimerEvent =
-  | {
-      type: "TICK";
-    }
-  | {
-      type: "DURATION.UPDATE";
-      value: number;
-    }
-  | {
-      type: "DURATION.INCREASE";
-      value: number;
-    }
-  | {
-      type: "RESET";
-    };
-
-export const timerMachine = createMachine<TimerContext, TimerEvent>(
+export const timerMachine = timerModel.createMachine(
   {
     initial: "running",
-    context: {
-      elapsed: 0,
-      duration: 5,
-      interval: 0.1
-    },
+    context: timerModel.initialContext,
     states: {
       running: {
         invoke: {
-          src: "timer"
+          src: "clock"
         },
         always: {
           target: "paused",
@@ -43,7 +33,7 @@ export const timerMachine = createMachine<TimerContext, TimerEvent>(
         },
         on: {
           TICK: {
-            actions: assign({
+            actions: timerModel.assign({
               elapsed: (context) =>
                 +(context.elapsed + context.interval).toFixed(2)
             })
@@ -58,33 +48,26 @@ export const timerMachine = createMachine<TimerContext, TimerEvent>(
       }
     },
     on: {
-      "DURATION.UPDATE": {
-        actions: assign({
-          duration: (_, event) => event.value
+      updateDuration: {
+        actions: timerModel.assign({
+          duration: (_, event) => event.duration
         })
       },
-      "DURATION.INCREASE": {
-        actions: assign({
-          duration: (context, event) => context.duration + event.value
+      increaseDuration: {
+        actions: timerModel.assign({
+          duration: (context, event) => context.duration + event.duration
         })
       },
-      RESET: {
-        actions: assign<TimerContext>({
+      resetElapsed: {
+        actions: timerModel.assign({
           elapsed: 0
         })
       }
     }
   },
   {
-    /*     guards: {
-      isLongBreak: ({ completed: { pomo } }) => pomo !== 0 && pomo % 4 === 0,
-      isTimerStopped: (_, e) => {
-        console.log(e);
-        return !e.data.complete;
-      }
-    }, */
     services: {
-      timer: (context) => (cb) => {
+      clock: (context) => (cb) => {
         const interval = setInterval(() => {
           cb("TICK");
         }, 1000 * context.interval);
