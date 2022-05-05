@@ -3,9 +3,42 @@ import { useMachine } from "@xstate/react";
 import { timerMachine } from "./timerMachine";
 import type { User, Task } from "./Types";
 
+const hasAdminRole = (user: User) => false;
+
+export type AdminProps = {
+  user: User;
+};
+
 export type ActivityProps = {
   user: User;
   task: Task;
+};
+
+export const Admin = (props: AdminProps) => {
+  const [state, send] = useMachine(timerMachine);
+  const { duration } = state.context;
+
+  if (!hasAdminRole(props.user)) return null;
+  return (
+    <>
+      <label>
+        <span>Duration:</span>
+        <input
+          type="range"
+          min={0}
+          max={30}
+          value={duration}
+          onChange={(e) => {
+            send("updateDuration", { duration: +e.target.value });
+          }}
+        />
+      </label>
+      <button onClick={(_) => send("resetElapsed")}>Reset</button>
+      <button onClick={() => send("increaseDuration", { duration: 10 })}>
+        Increase 10s
+      </button>
+    </>
+  );
 };
 
 export const Activity = (props: ActivityProps) => {
@@ -34,22 +67,7 @@ export const Activity = (props: ActivityProps) => {
         </output>
         <progress max={duration} value={elapsed} />
       </label>
-      <label>
-        <span>Duration:</span>
-        <input
-          type="range"
-          min={0}
-          max={30}
-          value={duration}
-          onChange={(e) => {
-            send("updateDuration", { duration: +e.target.value });
-          }}
-        />
-      </label>
-      <button onClick={(_) => send("resetElapsed")}>Reset</button>
-      <button onClick={() => send("increaseDuration", { duration: 10 })}>
-        Increase 10s
-      </button>
+      <Admin user={props.user} />
     </section>
   );
 };
