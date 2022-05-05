@@ -51,22 +51,21 @@ export const Activity = (props: ActivityProps) => {
       <label style={{ textAlign: "center", fontSize: 32 }}>
         {props.user.username || "unkown"}
       </label>
-      <span style={{ textAlign: "center", fontSize: 32 }}>
+      <span style={{ textAlign: "center", fontSize: 28 }}>
         {props.task.name || "unkown task name"}
         <span> {props.task.duration.toFixed(1)}</span>
       </span>
       <label>
         <span>
-          {" "}
-          {state.matches("paused")
-            ? `Elapsed time: PAUSED`
-            : "Elapsed time:"}{" "}
+          {"state: "}
+          <span style={{ color: "gray" }}>{state.value.toUpperCase()}</span>
         </span>
         <output>
           {elapsed.toFixed(1)}s / {duration.toFixed(1)}s
         </output>
         <progress max={duration} value={elapsed} />
       </label>
+      <button onClick={() => send("START")}>Ask for START</button>
       <Admin user={props.user} />
     </section>
   );

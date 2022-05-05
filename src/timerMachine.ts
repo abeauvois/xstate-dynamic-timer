@@ -11,6 +11,7 @@ const timerModel = createModel(
       updateDuration: (duration: number) => ({ duration }),
       increaseDuration: (duration: number) => ({ duration }),
       TICK: (value: number) => ({ value }),
+      START: (value: number) => ({ value }),
       resetElapsed: (value: number) => ({ value })
     }
   }
@@ -18,9 +19,14 @@ const timerModel = createModel(
 
 export const timerMachine = timerModel.createMachine(
   {
-    initial: "running",
+    initial: "newday",
     context: timerModel.initialContext,
     states: {
+      newday: {
+        on: {
+          START: "running"
+        }
+      },
       running: {
         invoke: {
           src: "clock"
