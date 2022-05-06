@@ -1,5 +1,6 @@
 import * as React from "react";
 import { useMachine } from "@xstate/react";
+
 import { timerMachine } from "./timerMachine";
 import type { User, Task } from "./Types";
 
@@ -58,7 +59,7 @@ export const Activity = (props: ActivityProps) => {
       <label>
         <span>
           {"state: "}
-          <span style={{ color: "gray" }}>{state.value.toUpperCase()}</span>
+          <span style={{ color: "gray" }}>{String(state.value).toUpperCase()}</span>
         </span>
         <output>
           {elapsed.toFixed(1)}s / {duration.toFixed(1)}s

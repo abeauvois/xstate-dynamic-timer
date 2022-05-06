@@ -27,15 +27,15 @@ button {
   border-radius: 0.25rem;
   border: none;
   cursor: pointer;
+}
 
-  &[disabled] {
-    opacity: 0.5;
-    cursor: not-allowed;
-  }
+button :disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
 
-  &[data-state="submitted"] {
-    background-color: #2AD142;
-  }
+button[data-state='submitted'] {
+  background-color: #2ad142;
 }
 
 output {
@@ -79,18 +79,17 @@ select {
 }
 
 label {
-  > span {
-    display: block;
-    font-size: .875rem;
-    font-weight: 700;
-    margin-bottom: .5rem;
-  }
+  margin: 0.5rem 0;
+}
 
-  margin: .5rem 0;
+label span {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+  margin: 0.5rem 0;
 }
 
 progress {
   width: 100%;
 }
-
-
