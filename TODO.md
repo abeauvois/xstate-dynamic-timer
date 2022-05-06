@@ -13,11 +13,11 @@
 
 ## IT Stack
 
-- [x] use Node LTS 16.18.0
+- [x] use Node LTS 14.19.0
 - [x] use pnpm
 - [x] use CRA2 latest
 - [x] use React latest
 - [x] use Typescript latest
-- [ ] use Netlify
+- [x] use Netlify
 - [ ] use Redis Cloud
 - [ ] use ...
