@@ -1,9 +1,21 @@
-import * as React from 'react'
-import * as ReactDOM from 'react-dom'
+import React, { useState } from 'react'
+import { createRoot } from 'react-dom/client'
 
 import './styles.css'
 
 import { Activity } from './Activity'
+
+export const Search = () => {
+  const [{ repo, cached, time }, setResult] = useState<any>({})
+  return (
+    <div
+      onSubmit={async (value) => {
+        const response = await fetch(`/api/repos/${value}`)
+        setResult(await response.json())
+      }}
+    />
+  )
+}
 
 const App = () => {
   return (
@@ -14,5 +26,9 @@ const App = () => {
   )
 }
 
-const rootElement = document.getElementById('root')
-ReactDOM.render(<App />, rootElement)
+// const rootElement = document.getElementById('root')
+// ReactDOM.render(<App />, rootElement)
+
+const container = document.getElementById('app')
+const root = createRoot(container!) // createRoot(container!) if you use TypeScript
+root.render(<App />)

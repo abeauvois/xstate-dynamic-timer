@@ -19,6 +19,4 @@
 - [x] use CRA2 latest
 - [x] use React latest
 - [x] use Typescript latest
-- [x] use Netlify
-- [ ] use Redis Cloud
-- [ ] use ...
+- [ ] use Firebase
