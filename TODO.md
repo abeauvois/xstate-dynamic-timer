@@ -19,4 +19,4 @@
 - [x] use CRA2 latest
 - [x] use React latest
 - [x] use Typescript latest
-- [ ] use Firebase
+- [x] use Firebase
