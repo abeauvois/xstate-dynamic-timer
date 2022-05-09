@@ -1,6 +1,6 @@
 // Import the functions you need from the SDKs you need
 import { initializeApp } from 'firebase/app'
-import { getDatabase, onValue, push, ref } from 'firebase/database'
+import { getDatabase, onValue, push, ref, get, child } from 'firebase/database'
 // TODO: Add SDKs for Firebase products that you want to use
 // https://firebase.google.com/docs/web/setup#available-libraries
 
@@ -17,8 +17,5 @@ const firebaseConfig = {
 // Initialize Firebase
 const app = initializeApp(firebaseConfig)
 const db = getDatabase()
-const familiesRef = ref(db, 'users')
 
-onValue(familiesRef, (snapshot) => {
-  console.log(snapshot.val())
-})
+export { db, ref, push, onValue, get, child }

@@ -5,3 +5,5 @@ node_modules/.pnpm/
 .netlify
 
 .env
+
+*.log

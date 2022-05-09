@@ -1,5 +1,7 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { createRoot } from 'react-dom/client'
+
+import { db, onValue, push, ref, get, child } from './firebase'
 
 import './styles.css'
 
@@ -17,7 +19,25 @@ export const Search = () => {
   )
 }
 
+const dbRef = ref(db)
+
 const App = () => {
+  useEffect(() => {
+    // onValue(ref(db, '/users/' + 'noa'), (snapshot) => {
+    //   console.log(snapshot.val())
+    // })
+    get(child(dbRef, `users/${'noa'}`))
+      .then((snapshot) => {
+        if (snapshot.exists()) {
+          console.log(snapshot.val())
+        } else {
+          console.log('No data available')
+        }
+      })
+      .catch((error) => {
+        console.error(error)
+      })
+  }, [])
   return (
     <>
       <Activity user={{ username: 'Noa Judoka' }} task={{ name: 'Gaming', duration: 5 }} />
@@ -25,9 +45,6 @@ const App = () => {
     </>
   )
 }
-
-// const rootElement = document.getElementById('root')
-// ReactDOM.render(<App />, rootElement)
 
 const container = document.getElementById('app')
 const root = createRoot(container!) // createRoot(container!) if you use TypeScript

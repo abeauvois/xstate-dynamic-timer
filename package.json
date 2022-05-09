@@ -8,6 +8,7 @@
     "@netlify/functions": "^1.0.0",
     "@xstate/react": "3.0.0",
     "firebase": "^9.8.0",
+    "firebase-tools": "^10.8.0",
     "node-fetch": "^3.2.4",
     "react": "18.1.0",
     "react-dom": "18.1.0",
@@ -26,7 +27,8 @@
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test --env=jsdom",
-    "eject": "react-scripts eject"
+    "eject": "react-scripts eject",
+    "kill": "npx kill-port 5000 9099 9000"
   },
   "browserslist": [
     ">0.2%",
