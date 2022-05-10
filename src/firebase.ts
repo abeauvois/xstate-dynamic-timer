@@ -1,6 +1,15 @@
 // Import the functions you need from the SDKs you need
 import { initializeApp } from 'firebase/app'
-import { getDatabase, onValue, push, ref, get, child } from 'firebase/database'
+import {
+  getDatabase,
+  onValue,
+  push,
+  ref,
+  get,
+  child,
+  update,
+  connectDatabaseEmulator,
+} from 'firebase/database'
 // TODO: Add SDKs for Firebase products that you want to use
 // https://firebase.google.com/docs/web/setup#available-libraries
 
@@ -18,4 +27,10 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig)
 const db = getDatabase()
 
-export { db, ref, push, onValue, get, child }
+// eslint-disable-next-line no-restricted-globals
+if (location.hostname === 'localhost') {
+  // Point to the RTDB emulator running on localhost.
+  connectDatabaseEmulator(db, 'localhost', 9000)
+}
+
+export { db, ref, push, onValue, get, child, update }
