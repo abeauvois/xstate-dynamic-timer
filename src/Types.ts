@@ -10,7 +10,8 @@ type Family = {
 type Task = {
   id: string
   name: string
-  duration: number // unix timestamp
+  duration: number
+  state: 'asking' | 'newday' | 'running' | 'paused'
 }
 type Effect = {
   id: string

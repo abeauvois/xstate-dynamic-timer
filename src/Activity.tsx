@@ -13,6 +13,8 @@ export type AdminProps = {
 export type ActivityProps = {
   user: User;
   task: Task;
+  hasAdminStarted: boolean
+  onAskStart: (user: User, task:Task) => void
 };
 
 export const Admin = (props: AdminProps) => {
@@ -47,6 +49,10 @@ export const Activity = (props: ActivityProps) => {
 
   const { elapsed, duration } = state.context;
 
+  if (props.hasAdminStarted) {
+    send("START")
+  }
+
   return (
     <section>
       <label style={{ textAlign: "center", fontSize: 32 }}>
@@ -66,7 +72,7 @@ export const Activity = (props: ActivityProps) => {
         </output>
         <progress max={duration} value={elapsed} />
       </label>
-      <button onClick={() => send("START")}>Ask for START</button>
+      <button onClick={() => props.onAskStart(props.user, props.task)}>Ask for START</button>
       <Admin user={props.user} />
     </section>
   );

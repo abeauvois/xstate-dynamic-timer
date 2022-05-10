@@ -48,6 +48,27 @@ const addEffect = (user: User, task: Task, effect: Effect) => {
   return update(ref(db), updates)
 }
 
+const askStartTask = (user: User, task: Task) => {
+  const updates = {} as Record<string, any>
+
+  const updatedTask: Task = {...task, state: 'asking'}
+
+  updates[`/tasks/${task.id}`] = updatedTask
+  updates[`/user-tasks/${user.id}/${task.id}`] = updatedTask
+
+  return update(ref(db), updates)
+}
+const acceptStartTask = (user: User, task: Task) => {
+  const updates = {} as Record<string, any>
+
+  const updatedTask = {...task, state: 'running'}
+
+  updates[`/tasks/${task.id}`] = updatedTask
+  updates[`/user-tasks/${user.id}/${task.id}`] = updatedTask
+
+  return update(ref(db), updates)
+}
+
 const App = () => {
   const [me, setMe] = useState<User>()
   const [userFamily, setUserFamily] = useState<Record<string, Family['id']>>()
@@ -82,9 +103,14 @@ const App = () => {
     <div>
       <div>{`me: ${me.id} family: ${Object.keys(userFamily)[0]}`}</div>
 
+      {/* <button onClick={() => send("START")}>Ask for START</button> */}
+
       {Object.entries(userTasks)
         .map(([taskKey, task]: [string, any]) => (
-          <Activity key={me.id} user={me} task={task} />
+          <>
+          <button onClick={() => acceptStartTask(me,task)}>accept to START</button>
+          <Activity key={me.id} user={me} task={task} hasAdminStarted={task.state === 'running'} onAskStart={askStartTask}/>
+          </>
         ))}
     </div>
   )
