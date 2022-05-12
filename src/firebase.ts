@@ -4,9 +4,9 @@ import {
   getDatabase,
   onValue,
   push,
-  ref,
   get,
   child,
+  ref,
   update,
   connectDatabaseEmulator,
 } from 'firebase/database'

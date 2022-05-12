@@ -1,13 +1,15 @@
 import React, { useEffect, useState } from 'react'
 import { createRoot } from 'react-dom/client'
 
-import { db, onValue, push, ref, get, child } from './firebase'
+import { db, onValue, ref } from './firebase'
 
 import './styles.css'
 
-import type { Effect, Family, Task, User } from './Types'
+import type { Family, Task, User } from './Types'
 import { Activity } from './Activity'
-import { update } from 'firebase/database'
+
+import { acceptStartTask, addActivity, askStartTask } from './firebaseActions'
+import { Unsubscribe } from 'firebase/database'
 
 export const Search = () => {
   const [{ repo, cached, time }, setResult] = useState<any>({})
@@ -21,99 +23,95 @@ export const Search = () => {
   )
 }
 
-const dbRef = ref(db)
 
-const addEffect = (user: User, task: Task, effect: Effect) => {
-  /**
-   * u1 issues a penalty (effect e1) to u2 on task "gaming"
-   *
-   * users-tasks/u2/gaming = {has: true, assigned: false }
-   * users-effects/u1/e1 = {issuer: true}
-   * effects-tasks/e1/gaming = {}
-   *
-   * OR
-   *
-   * users-tasks-effects/u2/gaming/e1 = {from: u1, to:u2, on:gaming, impact:{duration: -1}}
-   *
-   */
-
-  const newEffectId = push(child(ref(db), 'effects')).key
-
-  // Write the new post's data simultaneously in the effects list and the user's post list.
-  const updates = {} as Record<string, any>
-
-  updates[`/effects/${newEffectId}`] = effect
-  updates['/users-tasks-effects/' + `${user.id}/${task.id}/${newEffectId}`] = effect
-
-  return update(ref(db), updates)
-}
-
-const askStartTask = (user: User, task: Task) => {
-  const updates = {} as Record<string, any>
-
-  const updatedTask: Task = {...task, state: 'asking'}
-
-  updates[`/tasks/${task.id}`] = updatedTask
-  updates[`/user-tasks/${user.id}/${task.id}`] = updatedTask
-
-  return update(ref(db), updates)
-}
-const acceptStartTask = (user: User, task: Task) => {
-  const updates = {} as Record<string, any>
-
-  const updatedTask = {...task, state: 'running'}
-
-  updates[`/tasks/${task.id}`] = updatedTask
-  updates[`/user-tasks/${user.id}/${task.id}`] = updatedTask
-
-  return update(ref(db), updates)
-}
-
-const App = () => {
+export const useMe = (user: User) => {
   const [me, setMe] = useState<User>()
-  const [userFamily, setUserFamily] = useState<Record<string, Family['id']>>()
-  const [userTasks, setUserTasks] = useState<Record<string, Task>>()
-  const [myTasksEffects, setMyTasksEffects] = useState<Record<string, Task>>()
-
   useEffect(() => {
-    setMe(() => ({ id: 'noa', username: 'noa' }))
+    setMe(() => user)
   }, [])
+  return me
+}
+
+export const useDBFeed = (user: User | undefined, family: Family | undefined, task?: Task) => {
+  useEffect(() => {
+    if (user && task && family) {
+      addActivity(user, family, task)
+    }
+  }, [user])
+}
+
+export const useListener = (me: User | undefined, path: string) => {
+  const [value, setValue] = useState<Record<string, any>>()
 
   useEffect(() => {
+    let unsubscribe: Unsubscribe
     if (me) {
-      onValue(ref(db, `user-tasks/${me.id}`), (snapshot) => {
-        setUserTasks(snapshot.val())
-        console.log(snapshot.val())
+      unsubscribe = onValue(ref(db, path), (snapshot) => {
+        setValue(snapshot.val())
+        console.log(path, snapshot.val())
       })
-      onValue(ref(db, `user-family/${me.id}`), (snapshot) => {
-        setUserFamily(snapshot.val())
-        console.log(snapshot.val())
-      })
-      onValue(ref(db, `users-tasks-effects/${me.id}`), (snapshot) => {
-        setMyTasksEffects(snapshot.val())
-        console.log(snapshot.val())
-      })
+      return unsubscribe()
     }
   }, [me])
 
+  return value
+}
+
+const App = () => {
+  const [activities, setActivities] = useState<Record<string, Task>>()
+
+  // useMe({ id: 'noa', username: 'noa' }))
+  const me = useMe({ id: 'papa', username: 'papa', isAdmin: true })
+  useDBFeed(me, undefined)
+  useDBFeed({ id: 'noa', username: 'noa' }, { id: 'beauvois', name: 'beauvois' }, { id: 'gaming', name: 'gaming', duration: 5 })
+
+  const userFamily = useListener(me, `user-family/${me ? me.id : ''}`)
+
+  // useEffect(() => {
+  //   if (me && me.isAdmin) {
+  //     onValue(ref(db, `activities`), (snapshot) => {
+  //       setActivities(snapshot.val())
+  //       console.log(`activities:`, snapshot.val())
+  //     })
+  //   }
+  // }, [me])
+
+  // const effects = useListener(me, `activity-effects/${activity.id}`)
+
   if (!me) return null
-  if (!userTasks) return null
   if (!userFamily) return null
-  return (
-    <div>
-      <div>{`me: ${me.id} family: ${Object.keys(userFamily)[0]}`}</div>
+  if (!activities) return null
 
-      {/* <button onClick={() => send("START")}>Ask for START</button> */}
+  if (me.isAdmin) {
+    return (
+      <div>
+        <div>{`me: ${me.id} family: ${Object.keys(userFamily)[0]} isAdmin:${me.isAdmin ? 'true' : 'false'}`}</div>
 
-      {Object.entries(userTasks)
-        .map(([taskKey, task]: [string, any]) => (
-          <>
-          <button onClick={() => acceptStartTask(me,task)}>accept to START</button>
-          <Activity key={me.id} user={me} task={task} hasAdminStarted={task.state === 'running'} onAskStart={askStartTask}/>
-          </>
-        ))}
-    </div>
-  )
+        {Object.entries(activities)
+          .map(([activityKey, activity]: [string, any]) => (
+            <>
+              <div key={me.id} >
+                <p>{`userId: ${me.id} activity: ${activity.name}`} </p>
+                <button onClick={() => acceptStartTask(activity)}>Accept to START</button>
+              </div>
+            </>
+          ))}
+      </div>
+    )
+  } else {
+    return (
+      <div>
+        <div>{`me: ${me.id} family: ${Object.keys(userFamily)[0]}`}</div>
+
+        {/* <button onClick={() => send("START")}>Ask for START</button> */}
+
+        {Object.entries(activities)
+          .map(([taskKey, task]: [string, any]) => (
+            <Activity key={me.id} user={me} task={task} hasAdminStarted={task.state === 'running'} onAskStart={askStartTask} />
+          ))}
+      </div>
+    )
+  }
 }
 
 const container = document.getElementById('app')
@@ -137,27 +135,3 @@ root.render(<App />)
 //   //     console.error(error)
 //   //   })
 // }, [])
-
-// function writeNewPost(uid, username, picture, title, body) {
-//   const db = getDatabase()
-
-//   // A post entry.
-//   const postData = {
-//     author: username,
-//     uid: uid,
-//     body: body,
-//     title: title,
-//     starCount: 0,
-//     authorPic: picture,
-//   }
-
-//   // Get a key for a new Post.
-//   const newPostKey = push(child(ref(db), 'posts')).key
-
-//   // Write the new post's data simultaneously in the posts list and the user's post list.
-//   const updates = {}
-//   updates['/posts/' + newPostKey] = postData
-//   updates['/user-posts/' + uid + '/' + newPostKey] = postData
-
-//   return update(ref(db), updates)
-// }

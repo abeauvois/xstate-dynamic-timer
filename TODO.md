@@ -10,6 +10,7 @@
   - [x] create persistence (firebase)
   - [x] create user,task, effect models and events
   - [x] add askStartTask and acceptStartTask
+  - [ ] sync Firebase Task state with Activity internal state
 - [] As a Kid, I see my Activity duration in minutes (use time library)
 - [] As a Parent I can send a penalty, it should reduce the duration
 - [] As a Backend I can send a penalty, it should reduce the duration

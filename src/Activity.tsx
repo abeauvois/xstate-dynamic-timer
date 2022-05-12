@@ -1,7 +1,7 @@
 import * as React from "react";
 import { useMachine } from "@xstate/react";
 
-import { timerMachine } from "./timerMachine";
+import { userTaskMachine } from "./timerMachine";
 import type { User, Task } from "./Types";
 
 const hasAdminRole = (user: User) => false;
@@ -18,7 +18,7 @@ export type ActivityProps = {
 };
 
 export const Admin = (props: AdminProps) => {
-  const [state, send] = useMachine(timerMachine);
+  const [state, send] = useMachine(userTaskMachine);
   const { duration } = state.context;
 
   if (!hasAdminRole(props.user)) return null;
@@ -45,10 +45,18 @@ export const Admin = (props: AdminProps) => {
 };
 
 export const Activity = (props: ActivityProps) => {
-  const [state, send] = useMachine(timerMachine);
+  const [state, send] = useMachine(userTaskMachine);
 
   const { elapsed, duration } = state.context;
 
+  const updateUserTask = () => {
+    // update the userTaskMachine
+    send('ASK', {user: props.user, task: props.task})
+    // then update firebase to allow Admin to be notified about Tasks to start
+    props.onAskStart(props.user, props.task)
+  }
+
+  // TODO: this should be done internaly when calling acceptUserTask()
   if (props.hasAdminStarted) {
     send("START")
   }
@@ -72,7 +80,7 @@ export const Activity = (props: ActivityProps) => {
         </output>
         <progress max={duration} value={elapsed} />
       </label>
-      <button onClick={() => props.onAskStart(props.user, props.task)}>Ask for START</button>
+      <button onClick={updateUserTask}>Ask for START</button>
       <Admin user={props.user} />
     </section>
   );
