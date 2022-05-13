@@ -5,11 +5,11 @@ import { db, onValue, ref } from './firebase'
 
 import './styles.css'
 
-import type { Family, Task, User } from './Types'
-import { Activity } from './Activity'
+import type { Activity, Family, Task, User } from './Types'
 
-import { acceptStartTask, addActivity, askStartTask } from './firebaseActions'
+import { acceptStartTask, addActivity, addMe, askStartTask } from './firebaseActions'
 import { Unsubscribe } from 'firebase/database'
+import { ActivitySummary } from './Activity'
 
 export const Search = () => {
   const [{ repo, cached, time }, setResult] = useState<any>({})
@@ -24,10 +24,13 @@ export const Search = () => {
 }
 
 
-export const useMe = (user: User) => {
+export const useMe = (user: User, family: Family) => {
   const [me, setMe] = useState<User>()
   useEffect(() => {
-    setMe(() => user)
+    if (user && family) {
+      addMe(user, family)
+      setMe(() => user)
+    }
   }, [])
   return me
 }
@@ -37,7 +40,7 @@ export const useDBFeed = (user: User | undefined, family: Family | undefined, ta
     if (user && task && family) {
       addActivity(user, family, task)
     }
-  }, [user])
+  }, [])
 }
 
 export const useListener = (me: User | undefined, path: string) => {
@@ -57,24 +60,56 @@ export const useListener = (me: User | undefined, path: string) => {
   return value
 }
 
-const App = () => {
-  const [activities, setActivities] = useState<Record<string, Task>>()
+export const Admin = ({ me, family, activities }: { me: User, family: Family, activities: Record<string, Record<string, Activity>> }) => {
 
+
+  return (
+    <div>
+      <div>{`me: ${me.id} family: ${family.id} isAdmin:${me.isAdmin ? 'true' : 'false'}`}</div>
+
+      {Object.entries(activities)
+        .map(([userId, activity]: [string, Record<string, Activity>]) => {
+          const activityNumber = Object.entries(activity).length
+          // for (let i=0; i<activityNumber; i++){
+          const activityName = Object.entries(activity)[0][0]
+          const activityDetails = Object.entries(activity)[0][1]
+          return (
+              <div key={userId} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-around' }}  >
+                <p>{`userId: ${userId} activity: ${activityName} status: ${activityDetails.state}`} </p>
+                <button disabled={activityDetails.state !== 'idle'} onClick={() => acceptStartTask(activityDetails)}>Accept to START</button>
+              </div>
+          )
+          // } // for loop
+        })}
+    </div>
+  )
+}
+
+
+const App = () => {
+  const [activities, setActivities] = useState<Record<string, Record<string, Activity>>>()
   // useMe({ id: 'noa', username: 'noa' }))
-  const me = useMe({ id: 'papa', username: 'papa', isAdmin: true })
+  const me = useMe({ id: 'papa', username: 'papa', isAdmin: true }, { id: 'beauvois', name: 'beauvois' })
   useDBFeed(me, undefined)
   useDBFeed({ id: 'noa', username: 'noa' }, { id: 'beauvois', name: 'beauvois' }, { id: 'gaming', name: 'gaming', duration: 5 })
 
   const userFamily = useListener(me, `user-family/${me ? me.id : ''}`)
 
-  // useEffect(() => {
-  //   if (me && me.isAdmin) {
-  //     onValue(ref(db, `activities`), (snapshot) => {
-  //       setActivities(snapshot.val())
-  //       console.log(`activities:`, snapshot.val())
-  //     })
-  //   }
-  // }, [me])
+  useEffect(() => {
+    if (me && me.isAdmin) {
+      onValue(ref(db, `activities`), (snapshot) => {
+        setActivities(snapshot.val())
+        console.log(`activities:`, snapshot.val())
+      })
+    }
+    if (me && !me.isAdmin) {
+      onValue(ref(db, `/activities/${me.id}`), (snapshot) => {
+        setActivities(snapshot.val())
+        console.log(`activities:`, snapshot.val())
+      })
+    }
+  }, [me])
+
 
   // const effects = useListener(me, `activity-effects/${activity.id}`)
 
@@ -82,32 +117,22 @@ const App = () => {
   if (!userFamily) return null
   if (!activities) return null
 
+  const family = Object.values(userFamily)[0]
+
   if (me.isAdmin) {
     return (
-      <div>
-        <div>{`me: ${me.id} family: ${Object.keys(userFamily)[0]} isAdmin:${me.isAdmin ? 'true' : 'false'}`}</div>
-
-        {Object.entries(activities)
-          .map(([activityKey, activity]: [string, any]) => (
-            <>
-              <div key={me.id} >
-                <p>{`userId: ${me.id} activity: ${activity.name}`} </p>
-                <button onClick={() => acceptStartTask(activity)}>Accept to START</button>
-              </div>
-            </>
-          ))}
-      </div>
+      <Admin me={me} family={family} activities={activities} />
     )
   } else {
     return (
       <div>
-        <div>{`me: ${me.id} family: ${Object.keys(userFamily)[0]}`}</div>
+        <div>{`me: ${me.id} family: ${family}`}</div>
 
         {/* <button onClick={() => send("START")}>Ask for START</button> */}
 
         {Object.entries(activities)
           .map(([taskKey, task]: [string, any]) => (
-            <Activity key={me.id} user={me} task={task} hasAdminStarted={task.state === 'running'} onAskStart={askStartTask} />
+            <ActivitySummary key={me.id} user={me} task={task} hasAdminStarted={task.state === 'running'} onAskStart={askStartTask} />
           ))}
       </div>
     )

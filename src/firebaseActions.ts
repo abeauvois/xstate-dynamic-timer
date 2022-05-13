@@ -32,6 +32,16 @@ const addEffect = (user: User, task: Task, effect: Effect) => {
 }
 
 
+const addMe = (user: User, family: Family) => {
+
+  const updates = {} as Record<string, any>
+
+  updates[`/users/${user.id}`] = user
+  updates[`/user-family/${user.id}`] = family
+
+  return update(dbRef, updates)
+}
+
 const addActivity = (user: User, family: Family, task: Task) => {
   const newActivityKey = push(ref(db, 'activities')).key
 
@@ -41,7 +51,8 @@ const addActivity = (user: User, family: Family, task: Task) => {
   updates[`/families/${family.id}`] = family
   updates[`/user-family/${user.id}`] = family
   updates[`/tasks/${task.id}`] = task
-  updates[`/activities/${newActivityKey}`] = { user, task, state: 'idle' }
+  updates[`/activities/${user.id}/${task.id}`] = { user, task, state: 'idle' }
+  // updates[`/activities/${newActivityKey}`] = { user, task, state: 'idle' }
 
   return update(dbRef, updates)
 }
@@ -55,8 +66,8 @@ const askStartTask = (user: User, task: Task) => {
 
   const activity: Activity = { id: newActivityKey, user, task, state: 'idle' }
 
-  updates[`/user-activities/${user.id}`] = activity
-  updates[`/activities/${newActivityKey}`] = activity
+  // updates[`/user-activities/${user.id}`] = activity
+  updates[`/activities/${activity.user.id}/${activity.task.id}`] = activity
 
   return update(dbRef, updates)
 }
@@ -66,13 +77,13 @@ const acceptStartTask = (activity: Activity) => {
 
   const newActivity: Activity = { ...activity, state: 'running' }
 
-  updates[`/user-activities/${activity.user.id}`] = newActivity
-  updates[`/activities/${activity.id}`] = newActivity
+  // updates[`/user-activities/${activity.user.id}`] = newActivity
+  updates[`/activities/${activity.user.id}/${activity.task.id}`] = newActivity
 
   return update(dbRef, updates)
 }
 
-export { addActivity, acceptStartTask, askStartTask }
+export { addMe, addActivity, acceptStartTask, askStartTask }
 
 
 // function writeNewPost(uid, username, picture, title, body) {

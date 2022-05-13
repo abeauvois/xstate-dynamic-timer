@@ -10,7 +10,7 @@ export type AdminProps = {
   user: User;
 };
 
-export type ActivityProps = {
+export type ActivitySummaryProps = {
   user: User;
   task: Task;
   hasAdminStarted: boolean
@@ -44,7 +44,7 @@ export const Admin = (props: AdminProps) => {
   );
 };
 
-export const Activity = (props: ActivityProps) => {
+const ActivitySummary = (props: ActivitySummaryProps) => {
   const [state, send] = useMachine(userTaskMachine);
 
   const { elapsed, duration } = state.context;
@@ -85,3 +85,5 @@ export const Activity = (props: ActivityProps) => {
     </section>
   );
 };
+
+export {ActivitySummary}
