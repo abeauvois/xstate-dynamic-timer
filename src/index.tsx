@@ -88,13 +88,10 @@ export const MyActivities = ({ me, family, activities }: { me: User, family: Fam
   return (
     <div>
       <div>{`me: ${me.id} family: ${family.id}`}</div>
-
-      {/* <button onClick={() => send("START")}>Ask for START</button> */}
-
       {Object.entries(activities)
-        .map(([activityName, activity]: [string, Activity]) => {
+        .map(([_, activity]: [string, Activity]) => {
           return (
-          <ActivitySummary key={me.id} user={me} task={activity.task} hasAdminStarted={activity.state === 'running'} onAskStart={askStartTask} />
+          <ActivitySummary key={me.id} activity={activity}  onAskStart={askStartTask} />
         )
       }
       )}
@@ -148,21 +145,3 @@ const App = () => {
 const container = document.getElementById('app')
 const root = createRoot(container!) // createRoot(container!) if you use TypeScript
 root.render(<App />)
-
-// useEffect(() => {
-//   onValue(ref(db, `users/`), (snapshot) => {
-//     setUsers(snapshot.val())
-//     console.log(snapshot.val())
-//   })
-//   // get(child(dbRef, `users/${'noa'}`))
-//   //   .then((snapshot) => {
-//   //     if (snapshot.exists()) {
-//   //       console.log(snapshot.val())
-//   //     } else {
-//   //       console.log('No data available')
-//   //     }
-//   //   })
-//   //   .catch((error) => {
-//   //     console.error(error)
-//   //   })
-// }, [])

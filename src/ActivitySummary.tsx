@@ -2,7 +2,7 @@ import * as React from "react";
 import { useMachine } from "@xstate/react";
 
 import { userTaskMachine } from "./timerMachine";
-import type { User, Task } from "./Types";
+import type { User, Task, Activity } from "./Types";
 
 const hasAdminRole = (user: User) => false;
 
@@ -11,10 +11,8 @@ export type AdminProps = {
 };
 
 export type ActivitySummaryProps = {
-  user: User;
-  task: Task;
-  hasAdminStarted: boolean
-  onAskStart: (user: User, task:Task) => void
+  activity: Activity
+  onAskStart: (activity: Activity) => void
 };
 
 export const Admin = (props: AdminProps) => {
@@ -44,44 +42,47 @@ export const Admin = (props: AdminProps) => {
   );
 };
 
-const ActivitySummary = (props: ActivitySummaryProps) => {
-  const [state, send] = useMachine(userTaskMachine);
+const ActivitySummary = ({activity, onAskStart}: ActivitySummaryProps) => {
+  const [machineState, send] = useMachine(userTaskMachine);
 
-  const { elapsed, duration } = state.context;
+  const { elapsed, duration } = machineState.context;
 
-  const updateUserTask = () => {
+  const {user, task} = activity
+  const hasAdminStarted= activity.state === 'running'
+
+  const askForStarting = () => {
     // update the userTaskMachine
-    send('ASK', {user: props.user, task: props.task})
+    send('ASK', activity)
     // then update firebase to allow Admin to be notified about Tasks to start
-    props.onAskStart(props.user, props.task)
+    onAskStart(activity)
   }
 
   // TODO: this should be done internaly when calling acceptUserTask()
-  if (props.hasAdminStarted) {
+  if (hasAdminStarted) {
     send("START")
   }
 
   return (
     <section>
       <label style={{ textAlign: "center", fontSize: 32 }}>
-        {props.user.username || "unkown"}
+        {user.username || "unkown"}
       </label>
       <span style={{ textAlign: "center", fontSize: 28 }}>
-        {props.task.name || "unkown task name"}
-        <span> {props.task.duration.toFixed(1)}</span>
+        {task.name || "unkown task name"}
+        <span> {task.duration.toFixed(1)}</span>
       </span>
       <label>
         <span>
           {"state: "}
-          <span style={{ color: "gray" }}>{String(state.value).toUpperCase()}</span>
+          <span style={{ color: "gray" }}>{String(machineState.value).toUpperCase()}</span>
         </span>
         <output>
           {elapsed.toFixed(1)}s / {duration.toFixed(1)}s
         </output>
         <progress max={duration} value={elapsed} />
       </label>
-      <button onClick={updateUserTask}>Ask for START</button>
-      <Admin user={props.user} />
+      <button onClick={askForStarting}>Ask for START</button>
+      <Admin user={user} />
     </section>
   );
 };
