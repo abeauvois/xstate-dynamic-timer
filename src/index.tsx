@@ -9,7 +9,7 @@ import type { Activity, Family, Task, User } from './Types'
 
 import { acceptStartTask, addActivity, addMe, askStartTask } from './firebaseActions'
 import { Unsubscribe } from 'firebase/database'
-import { ActivitySummary } from './Activity'
+import { ActivitySummary } from './ActivitySummary'
 
 export const Search = () => {
   const [{ repo, cached, time }, setResult] = useState<any>({})
@@ -44,7 +44,7 @@ export const useDBFeed = (user: User | undefined, family: Family | undefined, ta
 }
 
 export const useListener = (me: User | undefined, path: string) => {
-  const [value, setValue] = useState<Record<string, any>>()
+  const [value, setValue] = useState<any>()
 
   useEffect(() => {
     let unsubscribe: Unsubscribe
@@ -60,24 +60,23 @@ export const useListener = (me: User | undefined, path: string) => {
   return value
 }
 
-export const Admin = ({ me, family, activities }: { me: User, family: Family, activities: Record<string, Record<string, Activity>> }) => {
-
+export const Admin = ({ me, family, allActivities }: { me: User, family: Family, allActivities: Record<string, Record<string, Activity>> }) => {
 
   return (
     <div>
       <div>{`me: ${me.id} family: ${family.id} isAdmin:${me.isAdmin ? 'true' : 'false'}`}</div>
 
-      {Object.entries(activities)
-        .map(([userId, activity]: [string, Record<string, Activity>]) => {
-          const activityNumber = Object.entries(activity).length
-          // for (let i=0; i<activityNumber; i++){
-          const activityName = Object.entries(activity)[0][0]
-          const activityDetails = Object.entries(activity)[0][1]
+      {Object.entries(allActivities)
+        .map(([userId, activities]: [string, Record<string, Activity>]) => {
+          const number = Object.entries(activities).length
+          // for (let i=0; i<number; i++){
+          const activityName = Object.entries(activities)[0][0]
+          const activityDetails = Object.entries(activities)[0][1]
           return (
-              <div key={userId} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-around' }}  >
-                <p>{`userId: ${userId} activity: ${activityName} status: ${activityDetails.state}`} </p>
-                <button disabled={activityDetails.state !== 'idle'} onClick={() => acceptStartTask(activityDetails)}>Accept to START</button>
-              </div>
+            <div key={userId} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-around' }}  >
+              <p>{`userId: ${userId} activity: ${activityName} status: ${activityDetails.state}`} </p>
+              <button disabled={activityDetails.state !== 'idle'} onClick={() => acceptStartTask(activityDetails)}>Accept to START</button>
+            </div>
           )
           // } // for loop
         })}
@@ -85,21 +84,39 @@ export const Admin = ({ me, family, activities }: { me: User, family: Family, ac
   )
 }
 
+export const MyActivities = ({ me, family, activities }: { me: User, family: Family, activities: Record<string, Activity> }) => {
+  return (
+    <div>
+      <div>{`me: ${me.id} family: ${family.id}`}</div>
+
+      {/* <button onClick={() => send("START")}>Ask for START</button> */}
+
+      {Object.entries(activities)
+        .map(([activityName, activity]: [string, Activity]) => {
+          return (
+          <ActivitySummary key={me.id} user={me} task={activity.task} hasAdminStarted={activity.state === 'running'} onAskStart={askStartTask} />
+        )
+      }
+      )}
+    </div>
+  )
+}
 
 const App = () => {
-  const [activities, setActivities] = useState<Record<string, Record<string, Activity>>>()
-  // useMe({ id: 'noa', username: 'noa' }))
-  const me = useMe({ id: 'papa', username: 'papa', isAdmin: true }, { id: 'beauvois', name: 'beauvois' })
+  const [activities, setActivities] = useState<Record<string,  Activity>>()
+  const [allActivities, setAllActivities] = useState<Record<string, Record<string, Activity>>>()
+  const me = useMe({ id: 'noa', username: 'noa' }, { id: 'beauvois', name: 'beauvois' })
+  // const me = useMe({ id: 'papa', username: 'papa', isAdmin: true }, { id: 'beauvois', name: 'beauvois' })
   useDBFeed(me, undefined)
   useDBFeed({ id: 'noa', username: 'noa' }, { id: 'beauvois', name: 'beauvois' }, { id: 'gaming', name: 'gaming', duration: 5 })
 
-  const userFamily = useListener(me, `user-family/${me ? me.id : ''}`)
+  const family = useListener(me, `user-family/${me ? me.id : ''}`)
 
   useEffect(() => {
     if (me && me.isAdmin) {
       onValue(ref(db, `activities`), (snapshot) => {
-        setActivities(snapshot.val())
-        console.log(`activities:`, snapshot.val())
+        setAllActivities(snapshot.val())
+        console.log(`AllActivities:`, snapshot.val())
       })
     }
     if (me && !me.isAdmin) {
@@ -110,31 +127,20 @@ const App = () => {
     }
   }, [me])
 
-
   // const effects = useListener(me, `activity-effects/${activity.id}`)
 
   if (!me) return null
-  if (!userFamily) return null
-  if (!activities) return null
-
-  const family = Object.values(userFamily)[0]
-
+  if (!family) return null
+  
   if (me.isAdmin) {
+    if (!allActivities) return null
     return (
-      <Admin me={me} family={family} activities={activities} />
-    )
-  } else {
+      <Admin me={me} family={family} allActivities={allActivities} />
+      )
+    } else {
+    if (!activities) return null
     return (
-      <div>
-        <div>{`me: ${me.id} family: ${family}`}</div>
-
-        {/* <button onClick={() => send("START")}>Ask for START</button> */}
-
-        {Object.entries(activities)
-          .map(([taskKey, task]: [string, any]) => (
-            <ActivitySummary key={me.id} user={me} task={task} hasAdminStarted={task.state === 'running'} onAskStart={askStartTask} />
-          ))}
-      </div>
+      <MyActivities me={me} family={family} activities={activities} />
     )
   }
 }
