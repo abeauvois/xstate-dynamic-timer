@@ -1,14 +1,13 @@
 import React, { useEffect, useState } from 'react'
 import { createRoot } from 'react-dom/client'
 
+import { Unsubscribe } from 'firebase/database'
 import { db, onValue, ref } from './firebase'
 
+import type { Activity, Family, Task, User } from './Types'
 import './styles.css'
 
-import type { Activity, Family, Task, User } from './Types'
-
 import { acceptStartTask, addActivity, addMe, askStartTask } from './firebaseActions'
-import { Unsubscribe } from 'firebase/database'
 import { ActivitySummary } from './ActivitySummary'
 
 export const Search = () => {
@@ -60,6 +59,28 @@ export const useListener = (me: User | undefined, path: string) => {
   return value
 }
 
+export const useActivities = (me: User | undefined) => {
+  const [activities, setActivities] = useState<Record<string,  Activity>>()
+  const [allActivities, setAllActivities] = useState<Record<string, Record<string, Activity>>>()
+
+  useEffect(() => {
+    if (me && me.isAdmin) {
+      onValue(ref(db, `activities`), (snapshot) => {
+        setAllActivities(snapshot.val())
+        console.log(`AllActivities:`, snapshot.val())
+      })
+    }
+    if (me && !me.isAdmin) {
+      onValue(ref(db, `/activities/${me.id}`), (snapshot) => {
+        setActivities(snapshot.val())
+        console.log(`activities:`, snapshot.val())
+      })
+    }
+  }, [me])
+
+  return {activities, allActivities}
+}
+
 export const Admin = ({ me, family, allActivities }: { me: User, family: Family, allActivities: Record<string, Record<string, Activity>> }) => {
 
   return (
@@ -75,7 +96,7 @@ export const Admin = ({ me, family, allActivities }: { me: User, family: Family,
           return (
             <div key={userId} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-around' }}  >
               <p>{`userId: ${userId} activity: ${activityName} status: ${activityDetails.state}`} </p>
-              <button disabled={activityDetails.state !== 'idle'} onClick={() => acceptStartTask(activityDetails)}>Accept to START</button>
+              <button disabled={activityDetails.state !== 'asking'} onClick={() => acceptStartTask(activityDetails)}>Accept to START</button>
             </div>
           )
           // } // for loop
@@ -100,30 +121,15 @@ export const MyActivities = ({ me, family, activities }: { me: User, family: Fam
 }
 
 const App = () => {
-  const [activities, setActivities] = useState<Record<string,  Activity>>()
-  const [allActivities, setAllActivities] = useState<Record<string, Record<string, Activity>>>()
   const me = useMe({ id: 'noa', username: 'noa' }, { id: 'beauvois', name: 'beauvois' })
   // const me = useMe({ id: 'papa', username: 'papa', isAdmin: true }, { id: 'beauvois', name: 'beauvois' })
   useDBFeed(me, undefined)
-  useDBFeed({ id: 'noa', username: 'noa' }, { id: 'beauvois', name: 'beauvois' }, { id: 'gaming', name: 'gaming', duration: 5 })
+  //useDBFeed({ id: 'noa', username: 'noa' }, { id: 'beauvois', name: 'beauvois' }, { id: 'gaming', name: 'gaming', duration: 5 })
+  
+  // TODO: rename allActivities to familyActivities
+  const {activities, allActivities} = useActivities(me)
 
   const family = useListener(me, `user-family/${me ? me.id : ''}`)
-
-  useEffect(() => {
-    if (me && me.isAdmin) {
-      onValue(ref(db, `activities`), (snapshot) => {
-        setAllActivities(snapshot.val())
-        console.log(`AllActivities:`, snapshot.val())
-      })
-    }
-    if (me && !me.isAdmin) {
-      onValue(ref(db, `/activities/${me.id}`), (snapshot) => {
-        setActivities(snapshot.val())
-        console.log(`activities:`, snapshot.val())
-      })
-    }
-  }, [me])
-
   // const effects = useListener(me, `activity-effects/${activity.id}`)
 
   if (!me) return null

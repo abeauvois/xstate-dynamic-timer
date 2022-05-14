@@ -48,7 +48,7 @@ const ActivitySummary = ({activity, onAskStart}: ActivitySummaryProps) => {
   const { elapsed, duration } = machineState.context;
 
   const {user, task} = activity
-  const hasAdminStarted= activity.state === 'running'
+  const hasAdminAccepted= activity.state === 'running'
 
   const askForStarting = () => {
     // update the userTaskMachine
@@ -58,7 +58,9 @@ const ActivitySummary = ({activity, onAskStart}: ActivitySummaryProps) => {
   }
 
   // TODO: this should be done internaly when calling acceptUserTask()
-  if (hasAdminStarted) {
+  if (hasAdminAccepted) {
+    send("ASK")
+    send("ACCEPT")
     send("START")
   }
 
@@ -81,7 +83,7 @@ const ActivitySummary = ({activity, onAskStart}: ActivitySummaryProps) => {
         </output>
         <progress max={duration} value={elapsed} />
       </label>
-      <button onClick={askForStarting}>Ask for START</button>
+      <button disabled={hasAdminAccepted} onClick={askForStarting}>Ask for START</button>
       <Admin user={user} />
     </section>
   );
