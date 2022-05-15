@@ -2,12 +2,12 @@ import React, { useEffect, useState } from 'react'
 import { createRoot } from 'react-dom/client'
 
 import { Unsubscribe } from 'firebase/database'
-import { db, onValue, ref } from './firebase'
+import { db, onValue, ref, get, child } from './firebase'
 
 import type { Activity, Family, Task, User } from './Types'
 import './styles.css'
 
-import { acceptStartTask, addActivity, addMe, askStartTask } from './firebaseActions'
+import { acceptStartTask, addActivity, addUser, askStartTask } from './firebaseActions'
 import { ActivitySummary } from './ActivitySummary'
 
 export const Search = () => {
@@ -27,7 +27,7 @@ export const useMe = (user: User, family: Family) => {
   const [me, setMe] = useState<User>()
   useEffect(() => {
     if (user && family) {
-      addMe(user, family)
+      addUser(user, family)
       setMe(() => user)
     }
   }, [])
@@ -59,24 +59,38 @@ export const useListener = (me: User | undefined, path: string) => {
   return value
 }
 
-export const useActivities = (me: User | undefined) => {
+export const useActivities = (me: User | undefined, family: Family | undefined) => {
   const [activities, setActivities] = useState<Record<string,  Activity>>()
   const [allActivities, setAllActivities] = useState<Record<string, Record<string, Activity>>>()
 
   useEffect(() => {
     if (me && me.isAdmin) {
-      onValue(ref(db, `activities`), (snapshot) => {
-        setAllActivities(snapshot.val())
-        console.log(`AllActivities:`, snapshot.val())
+      onValue(ref(db, `activities`), (activitiesSnapshot) => {
+        if (!family) return null
+        // get family activities
+        get(ref(db,`family-users/${family.id}`)).then(usersSnapshot=> {
+          const familyActivities = {} as Record<string, Record<string, Activity>>
+          usersSnapshot.forEach(user => {
+            activitiesSnapshot.forEach(activityUser => {
+              const activityUserId = activityUser.key
+              const userId = user.key
+              if (activityUserId && activityUserId === userId){
+                familyActivities[activityUserId] = activitiesSnapshot.val()[activityUserId]
+              }
+            })
+          })
+          console.log(`familyActivities:`, familyActivities)
+          setAllActivities(familyActivities)
+        })
       })
     }
     if (me && !me.isAdmin) {
-      onValue(ref(db, `/activities/${me.id}`), (snapshot) => {
+      onValue(ref(db, `activities/${me.id}`), (snapshot) => {
         setActivities(snapshot.val())
         console.log(`activities:`, snapshot.val())
       })
     }
-  }, [me])
+  }, [me, family])
 
   return {activities, allActivities}
 }
@@ -121,15 +135,17 @@ export const MyActivities = ({ me, family, activities }: { me: User, family: Fam
 }
 
 const App = () => {
-  const me = useMe({ id: 'noa', username: 'noa' }, { id: 'beauvois', name: 'beauvois' })
-  // const me = useMe({ id: 'papa', username: 'papa', isAdmin: true }, { id: 'beauvois', name: 'beauvois' })
+  // const me = useMe({ id: 'noa', username: 'noa' }, { id: 'beauvois', name: 'beauvois' })
+  const me = useMe({ id: 'papa', username: 'papa', isAdmin: true }, { id: 'beauvois', name: 'beauvois' })
   useDBFeed(me, undefined)
-  //useDBFeed({ id: 'noa', username: 'noa' }, { id: 'beauvois', name: 'beauvois' }, { id: 'gaming', name: 'gaming', duration: 5 })
-  
-  // TODO: rename allActivities to familyActivities
-  const {activities, allActivities} = useActivities(me)
-
+  //  useDBFeed({ id: 'noa', username: 'noa' }, { id: 'beauvois', name: 'beauvois' }, { id: 'gaming', name: 'gaming', duration: 5 })
+  //  useDBFeed({ id: 'leo', username: 'leo' }, { id: 'beauvois', name: 'beauvois' }, { id: 'gaming', name: 'gaming', duration: 5 })
+  //  useDBFeed({ id: 'teo', username: 'teo' }, { id: 'notmyfamily', name: 'notmyfamily' }, { id: 'gaming', name: 'gaming', duration: 5 })
   const family = useListener(me, `user-family/${me ? me.id : ''}`)
+
+  // TODO: rename allActivities to familyActivities
+  const {activities, allActivities} = useActivities(me, family)
+
   // const effects = useListener(me, `activity-effects/${activity.id}`)
 
   if (!me) return null

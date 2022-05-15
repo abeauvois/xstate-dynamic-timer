@@ -30,24 +30,25 @@ const addEffect = (user: User, task: Task, effect: Effect) => {
   return update(ref(db), updates)
 }
 
-const addMe = (user: User, family: Family) => {
+const addUser = (user: User, family: Family) => {
 
   const updates = {} as Record<string, any>
 
   updates[`/users/${user.id}`] = user
   updates[`/user-family/${user.id}`] = family
+  updates[`/family-users/${family.id}/${user.id}`] = user
 
   return update(dbRef, updates)
 }
 
 const addActivity = (user: User, family: Family, task: Task) => {
+
+  addUser(user, family)
+
   const newActivityKey = push(ref(db, 'activities')).key
 
   const updates = {} as Record<string, any>
 
-  updates[`/users/${user.id}`] = user
-  updates[`/families/${family.id}`] = family
-  updates[`/user-family/${user.id}`] = family
   updates[`/tasks/${task.id}`] = task
   updates[`/activities/${user.id}/${task.id}`] = { id: newActivityKey, user, task, state: 'idle' }
 
@@ -72,4 +73,4 @@ const acceptStartTask = (activity: Activity) => {
   setActivityState(activity, 'running')
 }
 
-export { addMe, addActivity, acceptStartTask, askStartTask }
+export { addUser, addActivity, acceptStartTask, askStartTask }

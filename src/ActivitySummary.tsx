@@ -2,7 +2,7 @@ import * as React from "react";
 import { useMachine } from "@xstate/react";
 
 import { userTaskMachine } from "./timerMachine";
-import type { User, Task, Activity } from "./Types";
+import type { User, Activity } from "./Types";
 
 const hasAdminRole = (user: User) => false;
 
