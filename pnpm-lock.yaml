@@ -8,6 +8,7 @@ specifiers:
   '@types/react': 18.0.8
   '@types/react-dom': 18.0.3
   '@xstate/react': 3.0.0
+  date-fns: ^2.28.0
   firebase: ^9.8.0
   firebase-tools: ^10.8.0
   node-fetch: ^3.2.4
@@ -20,6 +21,7 @@ specifiers:
 dependencies:
   '@netlify/functions': 1.0.0
   '@xstate/react': 3.0.0_mxz6tg6ny5uzqitzb7bw7ikoo4
+  date-fns: 2.28.0
   firebase: 9.8.0
   firebase-tools: 10.8.0
   node-fetch: 3.2.4
@@ -5195,6 +5197,11 @@ packages:
       abab: 2.0.6
       whatwg-mimetype: 3.0.0
       whatwg-url: 11.0.0
+    dev: false
+
+  /date-fns/2.28.0:
+    resolution: {integrity: sha512-8d35hViGYx/QH0icHYCeLmsLmMUheMmTyV9Fcm6gvNwdw31yXXH+O85sOBJ+OLnLQMKZowvpKb6FgMIQjcpvQw==}
+    engines: {node: '>=0.11'}
     dev: false
 
   /debug/2.6.9:
