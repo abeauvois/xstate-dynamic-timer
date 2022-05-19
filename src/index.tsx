@@ -7,8 +7,10 @@ import { db, onValue, ref, get, child } from './firebase'
 import type { Activity, Family, Task, User } from './Types'
 import './styles.css'
 
-import { acceptStartTask, addActivity, addUser, askStartTask } from './firebaseActions'
+import {setActivityState , addActivity, addUser } from './firebaseActions'
 import { ActivitySummary } from './ActivitySummary'
+import { useMachine } from '@xstate/react'
+import { userTaskMachine } from './timerMachine'
 
 export const Search = () => {
   const [{ repo, cached, time }, setResult] = useState<any>({})
@@ -110,7 +112,7 @@ export const Admin = ({ me, family, allActivities }: { me: User, family: Family,
           return (
             <div key={userId} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-around' }}  >
               <p>{`userId: ${userId} activity: ${activityName} status: ${activityDetails.state}`} </p>
-              <button disabled={activityDetails.state !== 'asking'} onClick={() => acceptStartTask(activityDetails)}>Accept to START</button>
+              <button disabled={activityDetails.state !== 'asking'} onClick={() => setActivityState(activityDetails, "running")}>Accept to START</button>
             </div>
           )
           // } // for loop
@@ -126,7 +128,7 @@ export const MyActivities = ({ me, family, activities }: { me: User, family: Fam
       {Object.entries(activities)
         .map(([_, activity]: [string, Activity]) => {
           return (
-          <ActivitySummary key={me.id} activity={activity}  onAskStart={askStartTask} />
+          <ActivitySummary key={me.id} activity={activity} />
         )
       }
       )}
@@ -135,8 +137,8 @@ export const MyActivities = ({ me, family, activities }: { me: User, family: Fam
 }
 
 const App = () => {
-  // const me = useMe({ id: 'noa', username: 'noa' }, { id: 'beauvois', name: 'beauvois' })
-  const me = useMe({ id: 'papa', username: 'papa', isAdmin: true }, { id: 'beauvois', name: 'beauvois' })
+  const me = useMe({ id: 'noa', username: 'noa' }, { id: 'beauvois', name: 'beauvois' })
+  // const me = useMe({ id: 'papa', username: 'papa', isAdmin: true }, { id: 'beauvois', name: 'beauvois' })
   useDBFeed(me, undefined)
   //  useDBFeed({ id: 'noa', username: 'noa' }, { id: 'beauvois', name: 'beauvois' }, { id: 'gaming', name: 'gaming', duration: 5 })
   //  useDBFeed({ id: 'leo', username: 'leo' }, { id: 'beauvois', name: 'beauvois' }, { id: 'gaming', name: 'gaming', duration: 5 })

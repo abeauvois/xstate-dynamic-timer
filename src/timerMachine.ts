@@ -1,59 +1,143 @@
+import { createMachine } from 'xstate'
+import { assign } from 'xstate/lib/actions'
 import { createModel } from 'xstate/lib/model'
-import { assign } from 'xstate'
 
-import { acceptStartTask, askStartTask } from './firebaseActions'
+import { setActivityState } from './firebaseActions'
+import { Activity, Task, User } from './Types'
 
 // const fetchUser = (userId: string) =>
 //   fetch(`url/to/user/${userId}`).then((response) => response.json())
 
-const userTaskModel = createModel(
-  {
-    user: {},
-    task: {},
-    elapsed: 0,
-    duration: 5,
-    interval: 0.1,
-  },
-  {
-    events: {
-      updateDuration: (duration: number) => ({ duration }),
-      increaseDuration: (duration: number) => ({ duration }),
-      TICK: (value: number) => ({ value }), // TODO: call callback (firebase)
-      ASK: (value: number) => ({ value }),
-      ACCEPT: (value: number) => ({ value }),
-      START: (value: number) => ({ value }),
-      resetElapsed: (value: number) => ({ value }),
-    },
-  }
-)
+// const userTaskModel = createModel(
+//   {
+//     activity: { id: '', state: 'init', user: {} as User, task: {} as Task },
+//     elapsed: 0,
+//     duration: 5,
+//     interval: 0.1,
+//   },
+//   {
+//     events: {
+//       updateDuration: (duration: number) => ({ duration }),
+//       increaseDuration: (duration: number) => ({ duration }),
+//       TICK: (value: number) => ({ value }), // TODO: call callback (firebase)
+//       INIT: (activity: Activity) => ({ activity }),
+//       ASK: (activity: Activity) => ({ activity }),
+//       ACCEPT: (value: number) => ({ value }),
+//       START: (value: number) => ({ value }),
+//       resetElapsed: (value: number) => ({ value }),
+//       // onStateChange: (context: any, event: { type: string; activity: Activity }) => ({
+//       //   activity: event.activity,
+//       // }),
+//     },
+//   }
+// )
 
-const userTaskMachine = userTaskModel.createMachine(
+type ActivityMachineEvents =
+  | {
+      type: 'INIT'
+      value: Activity
+    }
+  | {
+      type: 'ASK'
+      value: Activity
+    }
+  | {
+      type: 'ACCEPT'
+      value: Activity
+    }
+  | {
+      type: 'START'
+      value: Activity
+    }
+  | {
+      type: 'UPDATE_DURATION'
+      value: Activity
+    }
+  | {
+      type: 'INCREASE_DURATION'
+      value: Activity
+    }
+  | {
+      type: 'RESET_ELAPSED'
+      value: Activity
+    }
+  | {
+      type: 'TICK'
+      value: Activity
+    }
+
+type ActivityMachineContext = {
+  activity: Activity
+  elapsed: number
+  duration: number
+  interval: number
+}
+
+type ActivityMachineStates =
+  | { type: 'INIT'; value: 'initialized'; context: ActivityMachineContext }
+  | { type: 'ASK'; value: 'asking'; context: ActivityMachineContext }
+  | { type: 'ACCEPT'; value: 'accepted'; context: ActivityMachineContext }
+  | { type: 'UPDATE_DURATION'; value: 'running'; context: ActivityMachineContext }
+
+const userTaskMachine = createMachine<
+  ActivityMachineContext,
+  ActivityMachineEvents,
+  ActivityMachineStates
+>(
   {
     id: 'userTask',
-    initial: 'idle',
-    context: userTaskModel.initialContext,
+    initial: 'initialized',
+    context: {
+      activity: {
+        id: '',
+        state: 'idle',
+        user: { id: '', username: '' },
+        task: { id: '', name: '', duration: 0 },
+      },
+      elapsed: 0,
+      duration: 5,
+      interval: 0.1,
+    },
 
     states: {
       idle: {
         on: {
+          INIT: {
+            target: 'initialized',
+            actions: assign({
+              activity: (_context, event) => event.value,
+            }),
+          },
+        },
+      },
+      initialized: {
+        on: {
           ASK: {
             target: 'asking',
-            actions: ['askStartTask'],
+            actions: assign({
+              activity: (_context, event) => event.value,
+            }),
           },
         },
       },
       asking: {
-        // invoke: {
-        //   id: 'updateUserTaskState',
-        //   src: (context, event) => askStartTask(event.data.user, event.data.task),
-        //   onDone: {
-        //     target: 'success',
-        //     // actions: assign({ state: (context, event) => event.data.task }),
-        //   },
-        //   onError: {
-        //     target: 'idle',
-        //   },
-        // },
+        invoke: {
+          id: 'onStateChange',
+          src: (context, event) => (cb, _onEvent) => {
+            console.log('onStateChange:', context, event)
+            setActivityState(event.value, event.value.state).then(() => {
+              switch (event.value.state) {
+                case 'running':
+                  cb({ type: 'ACCEPT', value: event.value })
+
+                  break
+
+                default:
+                  break
+              }
+            })
+          },
+        },
         on: {
           ACCEPT: 'running',
         },
@@ -64,7 +148,6 @@ const userTaskMachine = userTaskModel.createMachine(
         },
       },
       running: {
-        entry: () => {},
         invoke: {
           src: 'clock',
         },
@@ -76,13 +159,16 @@ const userTaskMachine = userTaskModel.createMachine(
         },
         on: {
           TICK: {
-            actions: userTaskModel.assign({
+            actions: assign({
               elapsed: (context) => +(context.elapsed + context.interval).toFixed(2),
             }),
           },
         },
       },
       paused: {
+        invoke: {
+          src: 'onStateChange',
+        },
         always: {
           target: 'running',
           cond: (context) => context.elapsed < context.duration,
@@ -90,29 +176,35 @@ const userTaskMachine = userTaskModel.createMachine(
       },
     },
     on: {
-      updateDuration: {
-        actions: userTaskModel.assign({
-          duration: (_, event) => event.duration,
+      UPDATE_DURATION: {
+        actions: assign({
+          duration: (_, event) => event.value.task.duration,
         }),
       },
-      increaseDuration: {
-        actions: userTaskModel.assign({
-          duration: (context, event) => context.duration + event.duration,
+      INCREASE_DURATION: {
+        actions: assign({
+          duration: (context, event) => context.duration + event.value.task.duration,
         }),
       },
-      resetElapsed: {
-        actions: userTaskModel.assign({
-          elapsed: 0,
+      RESET_ELAPSED: {
+        actions: assign({
+          elapsed: (context, event) => 0,
         }),
       },
     },
   },
   {
-    actions: {
-      askStartTask: (context, event) => {
-        console.log('askStartTask...', context, event)
-      },
-    },
+    // actions: {
+    //   // initActivity: (context, event) => {
+    //   //   console.log('initActivity', context, event)
+    //   //   context.activity = event.activity
+    //   // },
+
+    //   askStartTask: (context, event) => {
+    //     console.log('askStartTask', context, event)
+    //     return { activity: event }
+    //   },
+    // },
     services: {
       clock: (context) => (cb) => {
         const interval = setInterval(() => {
@@ -123,7 +215,6 @@ const userTaskMachine = userTaskModel.createMachine(
           clearInterval(interval)
         }
       },
-      // onStateChange: {}
     },
   }
 )

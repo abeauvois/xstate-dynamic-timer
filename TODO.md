@@ -14,8 +14,9 @@
     - [x] User sees his activities and ASK for starting an activity => firebase **asking**
     - [x] Admin sees all activities **of his family** requesting ACCEPT => firebase **accepted**
     - [x] User sees his activity **running** requesting ACCEPT => firebase **running**
-    - [ ] User sees his activity **paused** when elapsed = duration => firebase **paused**
+    - [x] User sees his activity **paused** when elapsed = duration => firebase **paused**
     - [ ] Admin sees user activity **paused** when elapsed = duration => firebase **paused**
+    - [ ] User sees begin of the day his activity **idle** when new day => firebase **idle**
 - [] As a Kid, I see my Activity duration in minutes (use time library)
 - [] As a Parent I can send a penalty, it should reduce the duration
 - [] As a Backend I can send a penalty, it should reduce the duration

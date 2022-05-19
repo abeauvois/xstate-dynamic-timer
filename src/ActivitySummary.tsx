@@ -1,4 +1,4 @@
-import * as React from "react";
+import React, {useEffect} from "react";
 import { useMachine } from "@xstate/react";
 
 import { userTaskMachine } from "./timerMachine";
@@ -12,7 +12,6 @@ export type AdminProps = {
 
 export type ActivitySummaryProps = {
   activity: Activity
-  onAskStart: (activity: Activity) => void
 };
 
 export const Admin = (props: AdminProps) => {
@@ -30,39 +29,43 @@ export const Admin = (props: AdminProps) => {
           max={30}
           value={duration}
           onChange={(e) => {
-            send("updateDuration", { duration: +e.target.value });
+            send("UPDATE_DURATION", { duration: +e.target.value });
           }}
         />
       </label>
-      <button onClick={(_) => send("resetElapsed")}>Reset</button>
-      <button onClick={() => send("increaseDuration", { duration: 10 })}>
+      <button onClick={(_) => send("RESET_ELAPSED")}>Reset</button>
+      <button onClick={() => send("INCREASE_DURATION", { duration: 10 })}>
         Increase 10s
       </button>
     </>
   );
 };
 
-const ActivitySummary = ({activity, onAskStart}: ActivitySummaryProps) => {
+export const useInitMachine = (activity: Activity) => {
   const [machineState, send] = useMachine(userTaskMachine);
 
   const { elapsed, duration } = machineState.context;
 
-  const {user, task} = activity
   const hasAdminAccepted= activity.state === 'running'
+  const {user, task} = activity
+
 
   const askForStarting = () => {
-    // update the userTaskMachine
-    send('ASK', activity)
-    // then update firebase to allow Admin to be notified about Tasks to start
-    onAskStart(activity)
+    send('ASK', {activity})
   }
 
-  // TODO: this should be done internaly when calling acceptUserTask()
-  if (hasAdminAccepted) {
-    send("ASK")
-    send("ACCEPT")
-    send("START")
-  }
+  useEffect(() => {
+    if (activity) {
+      send('INIT',{activity})
+    }
+  }, [])
+
+  return { user, task, machineState: machineState.value, elapsed, duration, hasAdminAccepted, askForStarting }
+}
+
+const ActivitySummary = ({activity}: ActivitySummaryProps) => {
+
+  const {  user, task, machineState, elapsed, duration, hasAdminAccepted, askForStarting } = useInitMachine(activity)
 
   return (
     <section>
@@ -76,7 +79,7 @@ const ActivitySummary = ({activity, onAskStart}: ActivitySummaryProps) => {
       <label>
         <span>
           {"state: "}
-          <span style={{ color: "gray" }}>{String(machineState.value).toUpperCase()}</span>
+          <span style={{ color: "gray" }}>{String(machineState).toUpperCase()}</span>
         </span>
         <output>
           {elapsed.toFixed(1)}s / {duration.toFixed(1)}s

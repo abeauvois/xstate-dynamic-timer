@@ -65,12 +65,4 @@ const setActivityState = (activity: Activity, state: Activity['state']) => {
   return update(dbRef, updates)
 }
 
-const askStartTask = (activity: Activity) => {
-  setActivityState(activity, 'asking')
-}
-
-const acceptStartTask = (activity: Activity) => {
-  setActivityState(activity, 'running')
-}
-
-export { addUser, addActivity, acceptStartTask, askStartTask }
+export { addUser, addActivity, setActivityState }
