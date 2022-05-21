@@ -46,7 +46,7 @@ export const useInitMachine = (activity: Activity) => {
 
   const { elapsed, duration } = machineState.context;
 
-  const hasAdminAccepted= activity.state === 'running'
+  const hasAdminAccepted= activity.state === 'asking'
   const {user, task} = activity
 
 
