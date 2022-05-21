@@ -51,16 +51,28 @@ export const useInitMachine = (activity: Activity) => {
 
 
   const askForStarting = () => {
-    send('ASK', {activity})
+    send('ASK', {value: {...activity, state: 'asking'}})
   }
 
+  // Only fired when loaded
   useEffect(() => {
     if (activity) {
-      send('INIT',{activity})
+      console.log('onLoad:', machineState.value, activity)
+
+      if (hasAdminAccepted) {
+        // Case of rehydratation when user reload the app
+        send('ACCEPT',{value: {...activity, state: 'running'}})
+        
+      } 
+      
+      if (machineState.value === "idle"){
+        // Case of initialization of the app
+        send('INIT',{value: {...activity, state: 'initialized'}})
+      }
     }
   }, [])
 
-  return { user, task, machineState: machineState.value, elapsed, duration, hasAdminAccepted, askForStarting }
+  return { user, task, machineState, elapsed, duration, hasAdminAccepted, askForStarting }
 }
 
 const ActivitySummary = ({activity}: ActivitySummaryProps) => {
@@ -77,10 +89,18 @@ const ActivitySummary = ({activity}: ActivitySummaryProps) => {
         <span> {task.duration.toFixed(1)}</span>
       </span>
       <label>
-        <span>
+        <div>
           {"state: "}
-          <span style={{ color: "gray" }}>{String(machineState).toUpperCase()}</span>
-        </span>
+          <span style={{ color: "gray" }}>{String(machineState.value).toUpperCase()}</span>
+        </div>
+        <div>
+          {"activity state: "}
+          <span style={{ color: "gray" }}>{String(machineState.context.activity.state).toUpperCase()}</span>
+        </div>
+        <div>
+          {"db state: "}
+          <span style={{ color: "gray" }}>{String(activity.state).toUpperCase()}</span>
+        </div>
         <output>
           {elapsed.toFixed(1)}s / {duration.toFixed(1)}s
         </output>

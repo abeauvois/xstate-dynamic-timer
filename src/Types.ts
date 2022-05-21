@@ -17,7 +17,7 @@ type Activity = {
   id: string
   user: User
   task: Task
-  state: 'idle' | 'asking' | 'newday' | 'running' | 'paused'
+  state: 'idle' | 'initialized' | 'asking' | 'newday' | 'running' | 'paused'
 }
 type Effect = {
   id: string
