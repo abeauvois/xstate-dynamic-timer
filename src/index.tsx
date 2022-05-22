@@ -9,8 +9,6 @@ import './styles.css'
 
 import {setActivityState , addActivity, addUser } from './firebaseActions'
 import { ActivitySummary } from './ActivitySummary'
-import { useMachine } from '@xstate/react'
-import { userTaskMachine } from './timerMachine'
 
 export const Search = () => {
   const [{ repo, cached, time }, setResult] = useState<any>({})
@@ -39,9 +37,17 @@ export const useMe = (user: User, family: Family) => {
 export const useDBFeed = (user: User | undefined, family: Family | undefined, task?: Task) => {
   useEffect(() => {
     if (user && task && family) {
-      addActivity(user, family, task)
+      addUser(user, family)
+      addActivity(user, task)
     }
   }, [])
+}
+
+export const useInitDB = (me: User | undefined) => {
+  useDBFeed(me, undefined)
+  useDBFeed({ id: 'noa', username: 'noa' }, { id: 'beauvois', name: 'beauvois' }, { id: 'gaming', name: 'gaming', duration: 5 })
+  useDBFeed({ id: 'leo', username: 'leo' }, { id: 'beauvois', name: 'beauvois' }, { id: 'gaming', name: 'gaming', duration: 5 })
+  useDBFeed({ id: 'teo', username: 'teo' }, { id: 'notmyfamily', name: 'notmyfamily' }, { id: 'gaming', name: 'gaming', duration: 5 })
 }
 
 export const useListener = (me: User | undefined, path: string) => {
@@ -111,6 +117,7 @@ export const Admin = ({ me, family, allActivities }: { me: User, family: Family,
           const activityDetails = Object.entries(activities)[0][1]
           return (
             <div key={userId} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-around' }}  >
+              <div>{`state: ${String(activityDetails.state).toUpperCase()}`}</div>
               <p>{`userId: ${userId} activity: ${activityName} status: ${activityDetails.state}`} </p>
               <button disabled={activityDetails.state !== 'asking'} onClick={() => setActivityState(activityDetails, "running")}>Accept to START</button>
             </div>
@@ -137,12 +144,10 @@ export const MyActivities = ({ me, family, activities }: { me: User, family: Fam
 }
 
 const App = () => {
-  const me = useMe({ id: 'noa', username: 'noa' }, { id: 'beauvois', name: 'beauvois' })
-  // const me = useMe({ id: 'papa', username: 'papa', isAdmin: true }, { id: 'beauvois', name: 'beauvois' })
-  useDBFeed(me, undefined)
-  //  useDBFeed({ id: 'noa', username: 'noa' }, { id: 'beauvois', name: 'beauvois' }, { id: 'gaming', name: 'gaming', duration: 5 })
-  //  useDBFeed({ id: 'leo', username: 'leo' }, { id: 'beauvois', name: 'beauvois' }, { id: 'gaming', name: 'gaming', duration: 5 })
-  //  useDBFeed({ id: 'teo', username: 'teo' }, { id: 'notmyfamily', name: 'notmyfamily' }, { id: 'gaming', name: 'gaming', duration: 5 })
+  // const me = useMe({ id: 'noa', username: 'noa' }, { id: 'beauvois', name: 'beauvois' })
+  const me = useMe({ id: 'papa', username: 'papa', isAdmin: true }, { id: 'beauvois', name: 'beauvois' })
+  // useDBFeed(me, undefined)
+  // useInitDB(me)
   const family = useListener(me, `user-family/${me ? me.id : ''}`)
 
   // TODO: rename allActivities to familyActivities

@@ -41,9 +41,7 @@ const addUser = (user: User, family: Family) => {
   return update(dbRef, updates)
 }
 
-const addActivity = (user: User, family: Family, task: Task) => {
-
-  addUser(user, family)
+const addActivity = (user: User, task: Task) => {
 
   const newActivityKey = push(ref(db, 'activities')).key
 

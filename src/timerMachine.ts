@@ -115,7 +115,16 @@ const userTaskMachine =
               }),
               target: 'initialized',
             },
+            ASK: {
+              actions: assign({
+                activity: (_context, event) => event.value,
+              }),
+              target: 'asking',
+            },
             ACCEPT: {
+              actions: assign({
+                activity: (_context, event) => event.value,
+              }),
               target: 'running',
             },
           },
@@ -130,6 +139,12 @@ const userTaskMachine =
           on: {
             ASK: {
               target: 'asking',
+            },
+            ACCEPT: {
+              target: 'running',
+              actions: assign({
+                activity: (_context, event) => event.value,
+              }),
             },
           },
         },
@@ -187,7 +202,7 @@ const userTaskMachine =
           invoke: {
             src: {
               type: 'onStateChange',
-              state: 'idle',
+              state: 'paused',
             },
           },
           always: {
@@ -247,23 +262,10 @@ const userTaskMachine =
 
           const newActivity = { ...context.activity, state: src.state }
 
-          cb({ type: 'UPDATE_ACTIVITY', value: newActivity })
-
-          setActivityState(newActivity, src.state)
-          // .then(() => {
-          //   switch (event.type) {
-          //     case 'TICK':
-          //       // if (!isPaused){
-          //       //   cb({ type: 'ACCEPT', value: event.value })
-          //       // }
-          //       break
-          //     // case 'ASK':
-          //     //   cb({ type: 'ACCEPT', value: event.value })
-          //     //   break
-          //     default:
-          //       break
-          //   }
-          // })
+          if (newActivity.id) {
+            cb({ type: 'UPDATE_ACTIVITY', value: newActivity })
+            setActivityState(newActivity, src.state)
+          }
         },
       },
     }

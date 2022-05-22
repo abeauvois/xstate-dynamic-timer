@@ -46,9 +46,9 @@ export const useInitMachine = (activity: Activity) => {
 
   const { elapsed, duration } = machineState.context;
 
-  const hasAdminAccepted= activity.state === 'asking'
+  const isSyncRequired = activity.state !== machineState.value
+  const isActivityAskedDb= activity.state === 'asking'
   const {user, task} = activity
-
 
   const askForStarting = () => {
     send('ASK', {value: {...activity, state: 'asking'}})
@@ -58,26 +58,37 @@ export const useInitMachine = (activity: Activity) => {
   useEffect(() => {
     if (activity) {
       console.log('onLoad:', machineState.value, activity)
-
-      if (hasAdminAccepted) {
-        // Case of rehydratation when user reload the app
-        send('ACCEPT',{value: {...activity, state: 'running'}})
-        
-      } 
       
-      if (machineState.value === "idle"){
+      // Case of rehydratation when user reload the app
+      if (isSyncRequired){
+        switch (activity.state) {
+          case 'initialized':
+            send('INIT',{value: {...activity, state: 'initialized'}})
+            break;
+          case 'asking':
+            send('ASK',{value: {...activity, state: 'asking'}})
+            break;
+          case 'running':
+            send('ACCEPT',{value: {...activity, state: 'running'}})
+            break;
+        
+          default:
+            break;
+        }
+        
+      } else {
         // Case of initialization of the app
         send('INIT',{value: {...activity, state: 'initialized'}})
       }
     }
   }, [])
 
-  return { user, task, machineState, elapsed, duration, hasAdminAccepted, askForStarting }
+  return { user, task, machineState, elapsed, duration, isActivityAskedDb, askForStarting }
 }
 
 const ActivitySummary = ({activity}: ActivitySummaryProps) => {
 
-  const {  user, task, machineState, elapsed, duration, hasAdminAccepted, askForStarting } = useInitMachine(activity)
+  const {  user, task, machineState, elapsed, duration, isActivityAskedDb, askForStarting } = useInitMachine(activity)
 
   return (
     <section>
@@ -106,7 +117,7 @@ const ActivitySummary = ({activity}: ActivitySummaryProps) => {
         </output>
         <progress max={duration} value={elapsed} />
       </label>
-      <button disabled={hasAdminAccepted} onClick={askForStarting}>Ask for START</button>
+      <button disabled={isActivityAskedDb} onClick={askForStarting}>Ask for START</button>
       <Admin user={user} />
     </section>
   );
