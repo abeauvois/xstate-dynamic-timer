@@ -3,6 +3,7 @@ import { useMachine } from "@xstate/react";
 
 import { userTaskMachine } from "./timerMachine";
 import type { User, Activity } from "./Types";
+import { fromUnixTime } from "date-fns";
 
 const hasAdminRole = (user: User) => false;
 
@@ -89,7 +90,8 @@ export const useInitMachine = (activity: Activity) => {
 const ActivitySummary = ({activity}: ActivitySummaryProps) => {
 
   const {  user, task, machineState, elapsed, duration, isActivityAskedDb, askForStarting } = useInitMachine(activity)
-
+  const startOfTomorrow = fromUnixTime(activity.startOfTomorrow)
+  console.log("🚀 ~ file: ActivitySummary.tsx ~ line 94 ~ ActivitySummary ~ startOfTomorrow", activity)
   return (
     <section>
       <label style={{ textAlign: "center", fontSize: 32 }}>
@@ -103,6 +105,8 @@ const ActivitySummary = ({activity}: ActivitySummaryProps) => {
         <div>
           {"state: "}
           <span style={{ color: "gray" }}>{String(machineState.value).toUpperCase()}</span>
+          {"   startOfTomorrow: "}
+          <span style={{ color: "gray" }}>{startOfTomorrow.toLocaleDateString('fr-fr')}</span>
         </div>
         <div>
           {"activity state: "}

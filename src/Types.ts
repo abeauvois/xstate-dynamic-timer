@@ -18,6 +18,7 @@ type Activity = {
   user: User
   task: Task
   state: 'idle' | 'initialized' | 'asking' | 'newday' | 'running' | 'paused'
+  startOfTomorrow: number
 }
 type Effect = {
   id: string

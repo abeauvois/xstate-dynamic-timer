@@ -1,3 +1,4 @@
+import { getTime, startOfTomorrow } from 'date-fns'
 import { child, push, ref, update } from 'firebase/database'
 import { db } from './firebase'
 
@@ -48,7 +49,7 @@ const addActivity = (user: User, task: Task) => {
   const updates = {} as Record<string, any>
 
   updates[`/tasks/${task.id}`] = task
-  updates[`/activities/${user.id}/${task.id}`] = { id: newActivityKey, user, task, state: 'idle' }
+  updates[`/activities/${user.id}/${task.id}`] = { id: newActivityKey, user, task, state: 'idle', startOfTomorrow: getTime(startOfTomorrow()) }
 
   return update(dbRef, updates)
 }
