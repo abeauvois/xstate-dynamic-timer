@@ -45,11 +45,12 @@ const addUser = (user: User, family: Family) => {
 const addActivity = (user: User, task: Task) => {
 
   const newActivityKey = push(ref(db, 'activities')).key
+  const start = getTime(startOfTomorrow()) 
 
   const updates = {} as Record<string, any>
 
   updates[`/tasks/${task.id}`] = task
-  updates[`/activities/${user.id}/${task.id}`] = { id: newActivityKey, user, task, state: 'idle', startOfTomorrow: getTime(startOfTomorrow()) }
+  updates[`/activities/${user.id}/${task.id}`] = { id: newActivityKey, user, task, state: 'idle', startOfTomorrow: getTime(start) }
 
   return update(dbRef, updates)
 }

@@ -90,8 +90,7 @@ export const useInitMachine = (activity: Activity) => {
 const ActivitySummary = ({activity}: ActivitySummaryProps) => {
 
   const {  user, task, machineState, elapsed, duration, isActivityAskedDb, askForStarting } = useInitMachine(activity)
-  const startOfTomorrow = fromUnixTime(activity.startOfTomorrow)
-  console.log("🚀 ~ file: ActivitySummary.tsx ~ line 94 ~ ActivitySummary ~ startOfTomorrow", activity)
+  const startOfTomorrow = fromUnixTime(activity.startOfTomorrow/1000)
   return (
     <section>
       <label style={{ textAlign: "center", fontSize: 32 }}>
@@ -105,8 +104,10 @@ const ActivitySummary = ({activity}: ActivitySummaryProps) => {
         <div>
           {"state: "}
           <span style={{ color: "gray" }}>{String(machineState.value).toUpperCase()}</span>
+        </div>
+        <div>
           {"   startOfTomorrow: "}
-          <span style={{ color: "gray" }}>{startOfTomorrow.toLocaleDateString('fr-fr')}</span>
+          <span style={{ color: "gray" }}>{startOfTomorrow.toLocaleString('fr-fr', {formatMatcher: 'best fit'})}</span>
         </div>
         <div>
           {"activity state: "}
