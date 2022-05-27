@@ -146,8 +146,8 @@ export const MyActivities = ({ me, family, activities }: { me: User, family: Fam
 const App = () => {
   const me = useMe({ id: 'noa', username: 'noa' }, { id: 'beauvois', name: 'beauvois' })
   // const me = useMe({ id: 'papa', username: 'papa', isAdmin: true }, { id: 'beauvois', name: 'beauvois' })
-  useDBFeed(me, undefined)
-  useInitDB(me)
+  // useDBFeed(me, undefined)
+  // useInitDB(me)
   const family = useListener(me, `user-family/${me ? me.id : ''}`)
 
   // TODO: rename allActivities to familyActivities

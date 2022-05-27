@@ -1,9 +1,8 @@
 import { createMachine } from 'xstate'
 import { assign } from 'xstate/lib/actions'
 // import { createModel } from 'xstate/lib/model'
-import startOfTomorrow from 'date-fns/startOfTomorrow'
-import getTime from 'date-fns/getTime'
 
+import { getStartOfTomorrow } from './utils'
 import { setActivityState } from './firebaseActions'
 import { Activity, Task, User } from './Types'
 
@@ -99,7 +98,7 @@ const userTaskMachine = createMachine<
       activity: {
         id: '',
         state: 'idle',
-        startOfTomorrow: getTime(startOfTomorrow()),
+        startOfTomorrow: getStartOfTomorrow(),
         user: { id: '', username: '' },
         task: { id: '', name: '', duration: 0 },
       },
@@ -225,10 +224,16 @@ const userTaskMachine = createMachine<
             state: 'paused',
           },
         },
-        always: {
-          cond: (context) => context.elapsed < context.duration,
-          target: 'running',
-        },
+        always: [
+          {
+            cond: (context) => context.elapsed < context.duration,
+            target: 'running',
+          },
+          {
+            cond: (context) => Date.now() > context.activity.startOfTomorrow,
+            target: 'newday',
+          },
+        ],
       },
     },
     on: {
@@ -256,7 +261,7 @@ const userTaskMachine = createMachine<
         actions: assign({
           activity: (context, event) => ({
             ...context.activity,
-            startOfTomorrow: getTime(startOfTomorrow()),
+            startOfTomorrow: getStartOfTomorrow(),
           }),
         }),
       },
@@ -300,6 +305,12 @@ const userTaskMachine = createMachine<
         if (newActivity.id) {
           cb({ type: 'UPDATE_ACTIVITY', value: newActivity })
           setActivityState(newActivity, src.state)
+          if (src.state === 'newday') {
+            const newStartOfTomorrow = getStartOfTomorrow()
+            const newStartForActivity = { ...context.activity, startOfTomorrow: newStartOfTomorrow }
+            cb({ type: 'START_ACTIVITY', value: newStartForActivity })
+            setActivityState(newActivity, src.state)
+          }
         }
       },
     },
