@@ -88,7 +88,7 @@ type ActivityMachineStates =
   | { type: 'ACCEPT'; value: 'accepted'; context: ActivityMachineContext }
   | { type: 'UPDATE_DURATION'; value: 'running'; context: ActivityMachineContext }
 
-const userTaskMachine = createMachine<
+const activityMachine = createMachine<
   ActivityMachineContext,
   ActivityMachineEvents,
   ActivityMachineStates
@@ -272,19 +272,6 @@ const userTaskMachine = createMachine<
       incrementElapsed: assign({
         elapsed: (context) => +(context.elapsed + context.interval).toFixed(2),
       }),
-      // checkTime: assign({
-      //   startoftomorrow: (context) => Date.now(),
-      // }),
-      // initActivity: (context, event) => {
-      //   console.log('initActivity', context, event)
-      //   context.activity = event.activity
-      // },
-      // setActivityState: assign({
-      //   activity: (_context, event: ActivityMachineEvents) => {
-      //     const newValue: Activity = { ...event.value, state }
-      //     return newValue
-      //   },
-      // })
     },
     services: {
       clock: (context) => (cb) => {
@@ -317,6 +304,6 @@ const userTaskMachine = createMachine<
   }
 )
 
-export { userTaskMachine }
+export { activityMachine }
 
 //  context.t.toLocaleString('en-US', { hour: 'numeric', minute: 'numeric', hour12: true })

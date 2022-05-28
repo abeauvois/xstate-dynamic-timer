@@ -1,7 +1,7 @@
 import React, {useEffect} from "react";
 import { useMachine } from "@xstate/react";
 
-import { userTaskMachine } from "./timerMachine";
+import { activityMachine } from "./timerMachine";
 import type { User, Activity } from "./Types";
 import { fromUnixTime } from "date-fns";
 
@@ -16,7 +16,7 @@ export type ActivitySummaryProps = {
 };
 
 export const Admin = (props: AdminProps) => {
-  const [state, send] = useMachine(userTaskMachine);
+  const [state, send] = useMachine(activityMachine);
   const { duration } = state.context;
 
   if (!hasAdminRole(props.user)) return null;
@@ -43,7 +43,7 @@ export const Admin = (props: AdminProps) => {
 };
 
 export const useInitMachine = (activity: Activity) => {
-  const [machineState, send] = useMachine(userTaskMachine);
+  const [machineState, send] = useMachine(activityMachine);
 
   const { elapsed, duration } = machineState.context;
 

@@ -29,3 +29,5 @@
 - [x] use React latest
 - [x] use Typescript latest
 - [x] use Firebase
+
+## troubleshouting
