@@ -29,5 +29,8 @@
 - [x] use React latest
 - [x] use Typescript latest
 - [x] use Firebase
+- [x] migrate to vitejs
+- [x] add jest jest-environment-jsdom vite-jest -D
+- [x] add some tests
 
 ## troubleshouting

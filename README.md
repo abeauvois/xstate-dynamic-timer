@@ -6,4 +6,6 @@ open `http://localhost:4000/database/live-activities-default-rtdb/data` click on
 
 ## troubleshouting
 
+issue: server not running (when test with --watch ) solution: change vite version ... "vite": "2.8.6", "vite-jest": "0.1.4"
+
 `pnpm kill`

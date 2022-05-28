@@ -283,9 +283,8 @@ const activityMachine = createMachine<
           clearInterval(interval)
         }
       },
-
       onStateChange: (context, event, { src }) => (cb, _onEvent) => {
-        console.log('onStateChange:', context, event, src)
+        // console.log('onStateChange:', context, event, src)
 
         const newActivity = { ...context.activity, state: src.state }
 
@@ -305,5 +304,6 @@ const activityMachine = createMachine<
 )
 
 export { activityMachine }
+export type { ActivityMachineContext, ActivityMachineEvents, ActivityMachineStates }
 
 //  context.t.toLocaleString('en-US', { hour: 'numeric', minute: 'numeric', hour12: true })
