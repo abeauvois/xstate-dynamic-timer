@@ -206,7 +206,7 @@ const activityMachine = createMachine<
           TICK: [
             {
               actions: ['incrementElapsed'],
-              target: 'idle',
+              target: 'running',
               cond: (context) => Date.now() < context.activity.startOfTomorrow,
             },
             {
@@ -283,22 +283,27 @@ const activityMachine = createMachine<
           clearInterval(interval)
         }
       },
-      onStateChange: (context, event, { src }) => (cb, _onEvent) => {
-        // console.log('onStateChange:', context, event, src)
+      onStateChange:
+        (context, event, { src }) =>
+        (cb, _onEvent) => {
+          // console.log('onStateChange:', context, event, src)
 
-        const newActivity = { ...context.activity, state: src.state }
+          const newActivity = { ...context.activity, state: src.state }
 
-        if (newActivity.id) {
-          cb({ type: 'UPDATE_ACTIVITY', value: newActivity })
-          setActivityState(newActivity, src.state)
-          if (src.state === 'newday') {
-            const newStartOfTomorrow = getStartOfTomorrow()
-            const newStartForActivity = { ...context.activity, startOfTomorrow: newStartOfTomorrow }
-            cb({ type: 'START_ACTIVITY', value: newStartForActivity })
+          if (newActivity.id) {
+            cb({ type: 'UPDATE_ACTIVITY', value: newActivity })
             setActivityState(newActivity, src.state)
+            if (src.state === 'newday') {
+              const newStartOfTomorrow = getStartOfTomorrow()
+              const newStartForActivity = {
+                ...context.activity,
+                startOfTomorrow: newStartOfTomorrow,
+              }
+              cb({ type: 'START_ACTIVITY', value: newStartForActivity })
+              setActivityState(newActivity, src.state)
+            }
           }
-        }
-      },
+        },
     },
   }
 )

@@ -21,6 +21,8 @@
 - [] As a Parent I can send a penalty, it should reduce the duration
 - [] As a Backend I can send a penalty, it should reduce the duration
 
+## Tests
+
 ## IT Stack
 
 - [x] use Node LTS 14.19.0
@@ -30,7 +32,8 @@
 - [x] use Typescript latest
 - [x] use Firebase
 - [x] migrate to vitejs
-- [x] add jest jest-environment-jsdom vite-jest -D
+- [x] add jest jest-environment-jsdom vite-jest -D => issue with --watch
 - [x] add some tests
+- [ ] add vitest
 
 ## troubleshouting
