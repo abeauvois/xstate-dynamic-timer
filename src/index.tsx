@@ -7,7 +7,7 @@ import { db, onValue, ref, get, child } from './firebase'
 import type { Activity, Family, Task, User } from './Types'
 import './styles.css'
 
-import {setActivityState , addActivity, addUser } from './firebaseActions'
+import { setActivityState, addActivity, addUser } from './firebaseActions'
 import { ActivitySummary } from './ActivitySummary'
 
 export const Search = () => {
@@ -21,7 +21,6 @@ export const Search = () => {
     />
   )
 }
-
 
 export const useMe = (user: User, family: Family) => {
   const [me, setMe] = useState<User>()
@@ -45,9 +44,21 @@ export const useDBFeed = (user: User | undefined, family: Family | undefined, ta
 
 export const useInitDB = (me: User | undefined) => {
   useDBFeed(me, undefined)
-  useDBFeed({ id: 'noa', username: 'noa' }, { id: 'beauvois', name: 'beauvois' }, { id: 'gaming', name: 'gaming', duration: 5 })
-  useDBFeed({ id: 'leo', username: 'leo' }, { id: 'beauvois', name: 'beauvois' }, { id: 'gaming', name: 'gaming', duration: 5 })
-  useDBFeed({ id: 'teo', username: 'teo' }, { id: 'notmyfamily', name: 'notmyfamily' }, { id: 'gaming', name: 'gaming', duration: 5 })
+  useDBFeed(
+    { id: 'noa', username: 'noa' },
+    { id: 'beauvois', name: 'beauvois' },
+    { id: 'gaming', name: 'gaming', duration: 5 }
+  )
+  useDBFeed(
+    { id: 'leo', username: 'leo' },
+    { id: 'beauvois', name: 'beauvois' },
+    { id: 'gaming', name: 'gaming', duration: 5 }
+  )
+  useDBFeed(
+    { id: 'teo', username: 'teo' },
+    { id: 'notmyfamily', name: 'notmyfamily' },
+    { id: 'gaming', name: 'gaming', duration: 5 }
+  )
 }
 
 export const useListener = (me: User | undefined, path: string) => {
@@ -68,7 +79,7 @@ export const useListener = (me: User | undefined, path: string) => {
 }
 
 export const useActivities = (me: User | undefined, family: Family | undefined) => {
-  const [activities, setActivities] = useState<Record<string,  Activity>>()
+  const [activities, setActivities] = useState<Record<string, Activity>>()
   const [allActivities, setAllActivities] = useState<Record<string, Record<string, Activity>>>()
 
   useEffect(() => {
@@ -76,13 +87,13 @@ export const useActivities = (me: User | undefined, family: Family | undefined) 
       onValue(ref(db, `activities`), (activitiesSnapshot) => {
         if (!family) return null
         // get family activities
-        get(ref(db,`family-users/${family.id}`)).then(usersSnapshot=> {
+        get(ref(db, `family-users/${family.id}`)).then((usersSnapshot) => {
           const familyActivities = {} as Record<string, Record<string, Activity>>
-          usersSnapshot.forEach(user => {
-            activitiesSnapshot.forEach(activityUser => {
+          usersSnapshot.forEach((user) => {
+            activitiesSnapshot.forEach((activityUser) => {
               const activityUserId = activityUser.key
               const userId = user.key
-              if (activityUserId && activityUserId === userId){
+              if (activityUserId && activityUserId === userId) {
                 familyActivities[activityUserId] = activitiesSnapshot.val()[activityUserId]
               }
             })
@@ -100,45 +111,67 @@ export const useActivities = (me: User | undefined, family: Family | undefined) 
     }
   }, [me, family])
 
-  return {activities, allActivities}
+  return { activities, allActivities }
 }
 
-export const Admin = ({ me, family, allActivities }: { me: User, family: Family, allActivities: Record<string, Record<string, Activity>> }) => {
-
+export const Admin = ({
+  me,
+  family,
+  allActivities,
+}: {
+  me: User
+  family: Family
+  allActivities: Record<string, Record<string, Activity>>
+}) => {
   return (
     <div>
       <div>{`me: ${me.id} family: ${family.id} isAdmin:${me.isAdmin ? 'true' : 'false'}`}</div>
 
-      {Object.entries(allActivities)
-        .map(([userId, activities]: [string, Record<string, Activity>]) => {
+      {Object.entries(allActivities).map(
+        ([userId, activities]: [string, Record<string, Activity>]) => {
           const number = Object.entries(activities).length
           // for (let i=0; i<number; i++){
           const activityName = Object.entries(activities)[0][0]
           const activityDetails = Object.entries(activities)[0][1]
           return (
-            <div key={userId} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-around' }}  >
+            <div
+              key={userId}
+              style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-around' }}
+            >
               <div>{`state: ${String(activityDetails.state).toUpperCase()}`}</div>
-              <p>{`userId: ${userId} activity: ${activityName} status: ${activityDetails.state}`} </p>
-              <button disabled={activityDetails.state !== 'asking'} onClick={() => setActivityState(activityDetails, "running")}>Accept to START</button>
+              <p>
+                {`userId: ${userId} activity: ${activityName} status: ${activityDetails.state}`}{' '}
+              </p>
+              <button
+                disabled={activityDetails.state !== 'asking'}
+                onClick={() => setActivityState(activityDetails, 'running')}
+              >
+                Accept to START
+              </button>
             </div>
           )
           // } // for loop
-        })}
+        }
+      )}
     </div>
   )
 }
 
-export const MyActivities = ({ me, family, activities }: { me: User, family: Family, activities: Record<string, Activity> }) => {
+export const MyActivities = ({
+  me,
+  family,
+  activities,
+}: {
+  me: User
+  family: Family
+  activities: Record<string, Activity>
+}) => {
   return (
     <div>
       <div>{`me: ${me.id} family: ${family.id}`}</div>
-      {Object.entries(activities)
-        .map(([_, activity]: [string, Activity]) => {
-          return (
-          <ActivitySummary key={me.id} activity={activity} />
-        )
-      }
-      )}
+      {Object.entries(activities).map(([_, activity]: [string, Activity]) => {
+        return <ActivitySummary key={me.id} activity={activity} />
+      })}
     </div>
   )
 }
@@ -146,31 +179,31 @@ export const MyActivities = ({ me, family, activities }: { me: User, family: Fam
 const App = () => {
   const me = useMe({ id: 'noa', username: 'noa' }, { id: 'beauvois', name: 'beauvois' })
   // const me = useMe({ id: 'papa', username: 'papa', isAdmin: true }, { id: 'beauvois', name: 'beauvois' })
-  useDBFeed(me, undefined)
-  useInitDB(me)
+  // useDBFeed(me, undefined)
+  // useInitDB(me)
   const family = useListener(me, `user-family/${me ? me.id : ''}`)
 
   // TODO: rename allActivities to familyActivities
-  const {activities, allActivities} = useActivities(me, family)
+  const { activities, allActivities } = useActivities(me, family)
 
   // const effects = useListener(me, `activity-effects/${activity.id}`)
 
   if (!me) return null
   if (!family) return null
-  
+
   if (me.isAdmin) {
     if (!allActivities) return null
-    return (
-      <Admin me={me} family={family} allActivities={allActivities} />
-      )
-    } else {
+    return <Admin me={me} family={family} allActivities={allActivities} />
+  } else {
     if (!activities) return null
-    return (
-      <MyActivities me={me} family={family} activities={activities} />
-    )
+    return <MyActivities me={me} family={family} activities={activities} />
   }
 }
 
 const container = document.getElementById('app')
 const root = createRoot(container!) // createRoot(container!) if you use TypeScript
-root.render(<React.StrictMode><App /></React.StrictMode>)
+root.render(
+  <React.StrictMode>
+    <App />
+  </React.StrictMode>
+)

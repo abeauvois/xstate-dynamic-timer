@@ -6,9 +6,6 @@ import { getStartOfTomorrow } from './utils'
 import { setActivityState } from './firebaseActions'
 import { Activity, Task, User } from './Types'
 
-// const fetchUser = (userId: string) =>
-//   fetch(`url/to/user/${userId}`).then((response) => response.json())
-
 // const userTaskModel = createModel(
 //   {
 //     activity: { id: '', state: 'init', user: {} as User, task: {} as Task },
@@ -52,11 +49,11 @@ type ActivityMachineEvents =
     }
   | {
       type: 'UPDATE_DURATION'
-      value: Activity
+      duration: number
     }
   | {
       type: 'INCREASE_DURATION'
-      value: Activity
+      duration: number
     }
   | {
       type: 'RESET_ELAPSED'
@@ -171,6 +168,10 @@ const activityMachine = createMachine<
           ACCEPT: {
             target: 'initialized',
           },
+          UPDATE_DURATION: {
+            actions: ['updateDuration', (context, event) => console.log(event)],
+            target: 'asking',
+          },
         },
       },
       newday: {
@@ -245,16 +246,6 @@ const activityMachine = createMachine<
       },
     },
     on: {
-      UPDATE_DURATION: {
-        actions: assign({
-          duration: (_, event) => event.value.task.duration,
-        }),
-      },
-      INCREASE_DURATION: {
-        actions: assign({
-          duration: (context, event) => context.duration + event.value.task.duration,
-        }),
-      },
       RESET_ELAPSED: {
         actions: assign({
           elapsed: (context, event) => 0,
@@ -281,6 +272,9 @@ const activityMachine = createMachine<
       incrementElapsed: assign({
         elapsed: (context) => +(context.elapsed + context.interval).toFixed(2),
       }),
+      updateDuration: assign({
+        duration: (context, event) => context.duration + 2, //event.duration,
+      }),
     },
     services: {
       clock: (context) => (cb) => {
@@ -297,7 +291,7 @@ const activityMachine = createMachine<
       onStateChange:
         (context, event, { src }) =>
         (cb, _onEvent) => {
-          // console.log('onStateChange:', context, event, src)
+          console.log('onStateChange:', context, event, src)
 
           const newActivity = { ...context.activity, state: src.state }
 

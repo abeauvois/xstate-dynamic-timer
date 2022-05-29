@@ -5,6 +5,7 @@ import { interpret } from 'xstate'
 import { activityMachine, ActivityMachineContext } from './timerMachine'
 import { Activity } from './Types'
 
+// comment below is necessary to make the tests work
 /**
  * @vitest-environment jsdom
  */

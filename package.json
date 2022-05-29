@@ -8,7 +8,8 @@
     "preview": "vite preview",
     "test": "vitest",
     "testw": "vitest watch",
-    "coverage": "vitest run --coverage"
+    "coverage": "vitest run --coverage",
+    "kill": "kill-port 5000 9099 9000"
   },
   "dependencies": {
     "@xstate/react": "^3.0.0",
