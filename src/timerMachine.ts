@@ -67,7 +67,7 @@ type ActivityMachineEvents =
       value: Activity
     }
   | {
-      type: 'START_ACTIVITY'
+      type: 'RESTART_ACTIVITY'
       value: Activity
     }
   | {
@@ -155,7 +155,7 @@ const activityMachine = createMachine<
             }),
           },
           START: {
-            actions: 'START_ACTIVITY',
+            actions: 'RESTART_ACTIVITY',
             target: 'running',
           },
         },
@@ -182,7 +182,7 @@ const activityMachine = createMachine<
         },
         on: {
           START: {
-            // actions: 'START_ACTIVITY',
+            actions: 'RESTART_ACTIVITY',
             target: 'running',
           },
         },
@@ -265,12 +265,13 @@ const activityMachine = createMachine<
           activity: (_context, event) => event.value,
         }),
       },
-      START_ACTIVITY: {
-        actions: assign({
+      RESTART_ACTIVITY: {
+        actions: assign<ActivityMachineContext>({
           activity: (context, event) => ({
             ...context.activity,
             startOfTomorrow: getStartOfTomorrow(),
           }),
+          elapsed: 0,
         }),
       },
     },
@@ -309,7 +310,7 @@ const activityMachine = createMachine<
                 ...context.activity,
                 startOfTomorrow: newStartOfTomorrow,
               }
-              cb({ type: 'START_ACTIVITY', value: newStartForActivity })
+              cb({ type: 'RESTART_ACTIVITY', value: newStartForActivity })
               setActivityState(newActivity, src.state)
             }
           }

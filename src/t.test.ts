@@ -319,4 +319,5 @@ it('should be "running" after a "newday" + START', async () => {
   mock.send('START', { value: { ...activity, state: 'running' } })
 
   expect(mock.state.value).toBe('running')
+  expect(mock.state.context.elapsed).toBe(0)
 })
