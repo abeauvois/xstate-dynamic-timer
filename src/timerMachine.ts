@@ -149,10 +149,14 @@ const activityMachine = createMachine<
             target: 'asking',
           },
           ACCEPT: {
-            target: 'running',
+            target: 'initialized',
             actions: assign({
               activity: (_context, event) => event.value,
             }),
+          },
+          START: {
+            actions: 'START_ACTIVITY',
+            target: 'running',
           },
         },
       },
@@ -165,7 +169,7 @@ const activityMachine = createMachine<
         },
         on: {
           ACCEPT: {
-            target: 'running',
+            target: 'initialized',
           },
         },
       },
@@ -178,7 +182,7 @@ const activityMachine = createMachine<
         },
         on: {
           START: {
-            actions: 'START_ACTIVITY',
+            // actions: 'START_ACTIVITY',
             target: 'running',
           },
         },
@@ -191,7 +195,7 @@ const activityMachine = createMachine<
           {
             src: {
               type: 'onStateChange',
-              state: 'running',
+              state: 'running', // context activity state (src)
             },
           },
         ],
@@ -210,7 +214,10 @@ const activityMachine = createMachine<
               cond: (context) => Date.now() < context.activity.startOfTomorrow,
             },
             {
-              actions: ['incrementElapsed'],
+              actions: [
+                'incrementElapsed',
+                (context) => console.log('Machine running elapsed', context.elapsed, new Date()),
+              ],
               target: 'newday',
               cond: (context) => Date.now() > context.activity.startOfTomorrow,
             },
@@ -230,6 +237,7 @@ const activityMachine = createMachine<
             target: 'running',
           },
           {
+            actions: (context) => console.log('Machine paused elapsed', context.elapsed),
             cond: (context) => Date.now() > context.activity.startOfTomorrow,
             target: 'newday',
           },
@@ -275,7 +283,9 @@ const activityMachine = createMachine<
     },
     services: {
       clock: (context) => (cb) => {
+        console.log('Machine clock starting...', context.elapsed, new Date())
         const interval = setInterval(() => {
+          console.log('Machine clock next tick', context.elapsed, new Date())
           cb('TICK')
         }, 1000 * context.interval)
 
