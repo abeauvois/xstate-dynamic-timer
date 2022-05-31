@@ -299,9 +299,9 @@ const activityMachine = createMachine<
     },
     services: {
       clock: (context) => (cb) => {
-        console.log('Machine clock starting...', context.elapsed, new Date())
+        //console.log('Machine clock starting...', context.elapsed, new Date())
         const interval = setInterval(() => {
-          console.log('Machine clock next tick', context.elapsed, new Date())
+          //console.log('Machine clock next tick', context.elapsed, new Date())
           cb('TICK')
         }, 1000 * context.interval)
 
@@ -312,7 +312,7 @@ const activityMachine = createMachine<
       onStateChange:
         (context, event, { src }) =>
         (cb, _onEvent) => {
-          console.log('onStateChange:', context, event, src)
+          //console.log('onStateChange:', context, event, src)
 
           const newActivity = { ...context.activity, state: src.state }
 

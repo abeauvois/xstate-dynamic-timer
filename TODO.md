@@ -17,7 +17,7 @@
     - [x] User sees his activity **paused** when elapsed = duration => firebase **paused**
     - [x] Admin sees user activity **paused** when elapsed = duration => firebase **paused**
     - [x] User sees begin of the day his activity **initialized** when new day => firebase **initialized**
-- [ ] As a User, I see my Activity duration as the one of the Task & elapse=0
+- [x] As a User, I see my Activity duration as the one of the Task & elapse=0
 - [ ] As an Admin I can send a penalty, it should reduce the duration
 - [ ] As a Backend I can send a penalty, it should reduce the duration
 - [ ] As a User I have to sign up then sign in

@@ -12,6 +12,7 @@ export type AdminProps = {
   user: User
   duration: number
   onChange: EventHandler<SyntheticEvent>
+  onReset: EventHandler<SyntheticEvent>
 }
 
 const hasAdminRole = (user: User) => true
@@ -24,8 +25,7 @@ export const Admin = (props: AdminProps) => {
         <span>Duration:</span>
         <input type="range" min={0} max={30} value={props.duration} onChange={props.onChange} />
       </label>
-      {/* <button onClick={(_) => send('RESET_ELAPSED')}>Reset</button>
-      <button onClick={() => send('UPDATE_DURATION', { duration: 10 })}>Increase 10s</button> */}
+      <button onClick={props.onReset}>Reset</button>
     </>
   )
 }
@@ -45,6 +45,9 @@ export const useInitMachine = (activity: Activity) => {
   }
   const handleChangeDuration = (e) => {
     send('UPDATE_DURATION', { duration: +e.target.value })
+  }
+  const handleResetElapsed = () => {
+    send('RESET_ELAPSED')
   }
 
   // Only fired when loaded
@@ -98,6 +101,7 @@ export const useInitMachine = (activity: Activity) => {
     isActivityPausedDb,
     askForStarting,
     handleChangeDuration,
+    handleResetElapsed,
   }
 }
 
@@ -112,6 +116,7 @@ const ActivitySummary = ({ activity }: ActivitySummaryProps) => {
     isActivityPausedDb,
     askForStarting,
     handleChangeDuration,
+    handleResetElapsed,
   } = useInitMachine(activity)
 
   const startOfTomorrow = fromUnixTime(activity.startOfTomorrow / 1000)
@@ -152,7 +157,12 @@ const ActivitySummary = ({ activity }: ActivitySummaryProps) => {
       <button disabled={isActivityAskedDb || isActivityPausedDb} onClick={askForStarting}>
         Ask for START
       </button>
-      <Admin user={user} duration={duration} onChange={handleChangeDuration} />
+      <Admin
+        user={user}
+        duration={duration}
+        onChange={handleChangeDuration}
+        onReset={handleResetElapsed}
+      />
     </section>
   )
 }
