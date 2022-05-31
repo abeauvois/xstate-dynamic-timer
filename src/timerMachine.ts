@@ -258,6 +258,12 @@ const activityMachine = createMachine<
             target: 'newday',
           },
         ],
+        on: {
+          UPDATE_DURATION: {
+            actions: ['updateDuration', (context, event) => console.log(event)],
+            target: 'paused',
+          },
+        },
       },
     },
     on: {
@@ -288,7 +294,7 @@ const activityMachine = createMachine<
         elapsed: (context) => +(context.elapsed + context.interval).toFixed(2),
       }),
       updateDuration: assign({
-        duration: (context, event) => context.duration + 2, //event.duration,
+        duration: (context, event) => event.duration,
       }),
     },
     services: {

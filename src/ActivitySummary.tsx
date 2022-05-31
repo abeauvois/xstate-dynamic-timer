@@ -50,11 +50,11 @@ export const useInitMachine = (activity: Activity) => {
   // Only fired when loaded
   useEffect(() => {
     if (activity) {
-      console.log('onLoad machine state:', machineState.value)
-      console.log('onLoad machine context:', machineState.context)
-      console.log('activity:', activity)
+      // console.log('onLoad machine state:', machineState.value)
+      // console.log('onLoad machine context:', machineState.context)
+      // console.log('activity:', activity)
 
-      // Case of rehydratation when user reload the app
+      // Case of rehydration when user reload the app
       if (isSyncRequired) {
         switch (activity.state) {
           case 'initialized':
