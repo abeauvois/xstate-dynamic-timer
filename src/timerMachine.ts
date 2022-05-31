@@ -52,6 +52,9 @@ type ActivityMachineEvents =
       value: Activity
     }
   | {
+      type: 'ADD_PENALTY'
+    }
+  | {
       type: 'UPDATE_DURATION'
       duration: number
     }
@@ -284,6 +287,11 @@ const activityMachine = createMachine<
             startOfTomorrow: getStartOfTomorrow(),
           }),
           elapsed: 0,
+        }),
+      },
+      ADD_PENALTY: {
+        actions: assign<ActivityMachineContext>({
+          duration: (context, event) => context.duration - 1,
         }),
       },
     },

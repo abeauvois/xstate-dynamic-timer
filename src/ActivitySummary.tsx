@@ -13,6 +13,7 @@ export type AdminProps = {
   duration: number
   onChange: EventHandler<SyntheticEvent>
   onReset: EventHandler<SyntheticEvent>
+  onPenalty: EventHandler<SyntheticEvent>
 }
 
 const hasAdminRole = (user: User) => true
@@ -26,6 +27,8 @@ export const Admin = (props: AdminProps) => {
         <input type="range" min={0} max={30} value={props.duration} onChange={props.onChange} />
       </label>
       <button onClick={props.onReset}>Reset</button>
+      <br></br>
+      <button onClick={props.onPenalty}>Add Penalty</button>
     </>
   )
 }
@@ -48,6 +51,9 @@ export const useInitMachine = (activity: Activity) => {
   }
   const handleResetElapsed = () => {
     send('RESET_ELAPSED')
+  }
+  const handlePenalty = () => {
+    send('ADD_PENALTY')
   }
 
   // Only fired when loaded
@@ -102,6 +108,7 @@ export const useInitMachine = (activity: Activity) => {
     askForStarting,
     handleChangeDuration,
     handleResetElapsed,
+    handlePenalty,
   }
 }
 
@@ -117,6 +124,7 @@ const ActivitySummary = ({ activity }: ActivitySummaryProps) => {
     askForStarting,
     handleChangeDuration,
     handleResetElapsed,
+    handlePenalty,
   } = useInitMachine(activity)
 
   const startOfTomorrow = fromUnixTime(activity.startOfTomorrow / 1000)
@@ -162,6 +170,7 @@ const ActivitySummary = ({ activity }: ActivitySummaryProps) => {
         duration={duration}
         onChange={handleChangeDuration}
         onReset={handleResetElapsed}
+        onPenalty={handlePenalty}
       />
     </section>
   )
