@@ -17,8 +17,6 @@ export type AdminProps = {
 const hasAdminRole = (user: User) => true
 
 export const Admin = (props: AdminProps) => {
-  console.log('🚀 ~ Admin duration', props.duration)
-
   if (!hasAdminRole(props.user)) return null
   return (
     <>
@@ -39,6 +37,7 @@ export const useInitMachine = (activity: Activity) => {
 
   const isSyncRequired = activity.state !== machineState.value
   const isActivityAskedDb = activity.state === 'asking'
+  const isActivityPausedDb = activity.state === 'paused'
   const { user, task } = activity
 
   const askForStarting = () => {
@@ -51,7 +50,9 @@ export const useInitMachine = (activity: Activity) => {
   // Only fired when loaded
   useEffect(() => {
     if (activity) {
-      console.log('onLoad:', machineState.value, activity)
+      console.log('onLoad machine state:', machineState.value)
+      console.log('onLoad machine context:', machineState.context)
+      console.log('activity:', activity)
 
       // Case of rehydratation when user reload the app
       if (isSyncRequired) {
@@ -64,6 +65,17 @@ export const useInitMachine = (activity: Activity) => {
             break
           case 'running':
             send('ACCEPT', { value: { ...activity, state: 'running' } })
+            break
+          case 'paused':
+            console.log('onLoad paused')
+            send('PAUSE', {
+              value: {
+                activity,
+                duration: activity.task.duration, // TODO: Apply penalties
+                elapsed: activity.task.duration,
+                interval: 0.1,
+              },
+            })
             break
 
           default:
@@ -83,6 +95,7 @@ export const useInitMachine = (activity: Activity) => {
     elapsed,
     duration,
     isActivityAskedDb,
+    isActivityPausedDb,
     askForStarting,
     handleChangeDuration,
   }
@@ -96,11 +109,13 @@ const ActivitySummary = ({ activity }: ActivitySummaryProps) => {
     elapsed,
     duration,
     isActivityAskedDb,
+    isActivityPausedDb,
     askForStarting,
     handleChangeDuration,
   } = useInitMachine(activity)
-  console.log('🚀 duration', duration)
+
   const startOfTomorrow = fromUnixTime(activity.startOfTomorrow / 1000)
+
   return (
     <section>
       <label style={{ textAlign: 'center', fontSize: 32 }}>{user.username || 'unkown'}</label>
@@ -134,7 +149,7 @@ const ActivitySummary = ({ activity }: ActivitySummaryProps) => {
         </output>
         <progress max={duration} value={elapsed} />
       </label>
-      <button disabled={isActivityAskedDb} onClick={askForStarting}>
+      <button disabled={isActivityAskedDb || isActivityPausedDb} onClick={askForStarting}>
         Ask for START
       </button>
       <Admin user={user} duration={duration} onChange={handleChangeDuration} />

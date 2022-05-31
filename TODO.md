@@ -20,6 +20,7 @@
 - [ ] As a User, I see my Activity duration as the one of the Task & elapse=0
 - [ ] As an Admin I can send a penalty, it should reduce the duration
 - [ ] As a Backend I can send a penalty, it should reduce the duration
+- [ ] As a User I have to sign up then sign in
 
 ## Tests
 
@@ -28,7 +29,7 @@
 
 ## Refactor
 
-- [ ] move timerMachines to the backup
+- [ ] move timerMachines to the backend
 - [ ] use Server Source Events to update clients with timers states
 
 ## IT Stack

@@ -44,6 +44,10 @@ type ActivityMachineEvents =
       value: Activity
     }
   | {
+      type: 'PAUSE'
+      value: ActivityMachineContext
+    }
+  | {
       type: 'START'
       value: Activity
     }
@@ -117,6 +121,8 @@ const activityMachine = createMachine<
           INIT: {
             actions: assign({
               activity: (_context, event) => event.value,
+              elapsed: 0,
+              duration: (_context, event) => event.value.task.duration,
             }),
             target: 'initialized',
           },
@@ -131,6 +137,15 @@ const activityMachine = createMachine<
               activity: (_context, event) => event.value,
             }),
             target: 'running',
+          },
+          PAUSE: {
+            actions: assign({
+              activity: (_, event) => event.value.activity,
+              elapsed: (_, event) => event.value.elapsed,
+              duration: (_, event) => event.value.duration,
+              interval: (_, event) => event.value.interval,
+            }),
+            target: 'paused',
           },
         },
       },
@@ -295,6 +310,7 @@ const activityMachine = createMachine<
 
           const newActivity = { ...context.activity, state: src.state }
 
+          // update activity
           if (newActivity.id) {
             cb({ type: 'UPDATE_ACTIVITY', value: newActivity })
             setActivityState(newActivity, src.state)
@@ -307,6 +323,11 @@ const activityMachine = createMachine<
               cb({ type: 'RESTART_ACTIVITY', value: newStartForActivity })
               setActivityState(newActivity, src.state)
             }
+          }
+          // initialize activity
+          else {
+            // console.log('🚀  UPDATE_CONTEXT', event)
+            //cb({ type: 'UPDATE_CONTEXT', value: event.value })
           }
         },
     },
