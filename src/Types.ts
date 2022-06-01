@@ -1,12 +1,13 @@
 type User = {
   id: string
   username: string
-  birth?: number // unix timestamp
+  createdAt: number // unix timestamp
   isAdmin?: boolean
 }
 type Family = {
   id: string
   name: string
+  createdAt: number // unix timestamp
 }
 type Task = {
   id: string
@@ -18,12 +19,15 @@ type Activity = {
   user: User
   task: Task
   state: 'idle' | 'initialized' | 'asking' | 'newday' | 'running' | 'paused'
-  startOfTomorrow: number
+  startOfTomorrow: number // unix timestamp
 }
-type Effect = {
+type ActivityModifier = {
   id: string
   name: string
-  birth?: number // unix timestamp
+  createdAt: number // unix timestamp
+  factor: number
+  min?: number
+  max?: number
 }
 
-export type {User, Family, Task, Activity, Effect}
+export type { User, Family, Task, Activity, ActivityModifier }

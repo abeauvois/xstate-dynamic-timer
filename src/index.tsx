@@ -7,8 +7,25 @@ import { db, onValue, ref, get, child } from './firebase'
 import type { Activity, Family, Task, User } from './Types'
 import './styles.css'
 
-import { setActivityState, addActivity, addUser } from './firebaseActions'
+import {
+  setActivityState,
+  addActivity,
+  addUser,
+  addActivityPenalty,
+  getPenalties,
+} from './firebaseActions'
 import { ActivitySummary } from './ActivitySummary'
+
+// TODO: Data seed for testing
+const task = { id: 'gaming', name: 'gaming', duration: 5 }
+const leo = { id: 'leo', username: 'leo', createdAt: Date.now() }
+const noa = { id: 'noa', username: 'noa', createdAt: Date.now() }
+const teo = { id: 'teo', username: 'teo', createdAt: Date.now() }
+const papa = { id: 'papa', username: 'papa', createdAt: Date.now(), isAdmin: true }
+const beauvoisFamilly = { id: 'teo', name: 'teo', createdAt: Date.now() }
+const notMyFamilly = { id: 'notMyFamilly', name: 'notMyFamilly', createdAt: Date.now() }
+const activity: Activity = { id: 'a0', user: noa, task, state: 'idle', startOfTomorrow: Date.now() }
+const penalty = { id: 'penalty', name: 'penalty', createdAt: Date.now(), factor: -1 }
 
 export const Search = () => {
   const [{ repo, cached, time }, setResult] = useState<any>({})
@@ -44,21 +61,13 @@ export const useDBFeed = (user: User | undefined, family: Family | undefined, ta
 
 export const useInitDB = (me: User | undefined) => {
   useDBFeed(me, undefined)
-  useDBFeed(
-    { id: 'noa', username: 'noa' },
-    { id: 'beauvois', name: 'beauvois' },
-    { id: 'gaming', name: 'gaming', duration: 5 }
-  )
-  useDBFeed(
-    { id: 'leo', username: 'leo' },
-    { id: 'beauvois', name: 'beauvois' },
-    { id: 'gaming', name: 'gaming', duration: 5 }
-  )
-  useDBFeed(
-    { id: 'teo', username: 'teo' },
-    { id: 'notmyfamily', name: 'notmyfamily' },
-    { id: 'gaming', name: 'gaming', duration: 5 }
-  )
+  useDBFeed(noa, beauvoisFamilly, task)
+  useDBFeed(leo, beauvoisFamilly, task)
+  useDBFeed(teo, notMyFamilly, task)
+
+  useEffect(() => {
+    addActivityPenalty(activity, penalty)
+  }, [])
 }
 
 export const useListener = (me: User | undefined, path: string) => {
@@ -177,16 +186,14 @@ export const MyActivities = ({
 }
 
 const App = () => {
-  const me = useMe({ id: 'noa', username: 'noa' }, { id: 'beauvois', name: 'beauvois' })
-  // const me = useMe({ id: 'papa', username: 'papa', isAdmin: true }, { id: 'beauvois', name: 'beauvois' })
-  // useDBFeed(me, undefined)
-  // useInitDB(me)
+  const me = useMe(noa, beauvoisFamilly)
+  // const me = useMe(papa, beauvoisFamilly)
+  useDBFeed(me, undefined)
+  useInitDB(me)
   const family = useListener(me, `user-family/${me ? me.id : ''}`)
 
   // TODO: rename allActivities to familyActivities
   const { activities, allActivities } = useActivities(me, family)
-
-  // const effects = useListener(me, `activity-effects/${activity.id}`)
 
   if (!me) return null
   if (!family) return null

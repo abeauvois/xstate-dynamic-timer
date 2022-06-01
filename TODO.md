@@ -21,6 +21,7 @@
 - [ ] As an Admin I can send a penalty, it should reduce the duration
 - [ ] As a Backend I can send a penalty, it should reduce the duration
 - [ ] As a User I have to sign up then sign in
+- [ ] As a User I should see an alert when can not send an event (machine state)
 
 ## Tests
 

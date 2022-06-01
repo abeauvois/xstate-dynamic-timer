@@ -187,7 +187,7 @@ const activityMachine = createMachine<
             target: 'initialized',
           },
           UPDATE_DURATION: {
-            actions: ['updateDuration', (context, event) => console.log(event)],
+            actions: ['updateDuration'],
             target: 'asking',
           },
         },
@@ -256,14 +256,13 @@ const activityMachine = createMachine<
             target: 'running',
           },
           {
-            actions: (context) => console.log('Machine paused elapsed', context.elapsed),
             cond: (context) => Date.now() > context.activity.startOfTomorrow,
             target: 'newday',
           },
         ],
         on: {
           UPDATE_DURATION: {
-            actions: ['updateDuration', (context, event) => console.log(event)],
+            actions: ['updateDuration'],
             target: 'paused',
           },
         },
@@ -299,7 +298,7 @@ const activityMachine = createMachine<
   {
     actions: {
       incrementElapsed: assign({
-        elapsed: (context) => +(context.elapsed + context.interval).toFixed(2),
+        elapsed: (context) => +(context.elapsed + context.interval),
       }),
       updateDuration: assign({
         duration: (context, event) => event.duration,

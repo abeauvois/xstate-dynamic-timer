@@ -1,12 +1,15 @@
-import React, { EventHandler, SyntheticEvent, useEffect } from 'react'
+import React, { EventHandler, SyntheticEvent, useEffect, useState } from 'react'
+import { fromUnixTime } from 'date-fns'
+import { onValue, ref } from 'firebase/database'
 import { useMachine } from '@xstate/react'
 
+import type { User, Activity, ActivityModifier } from './Types'
 import { activityMachine } from './timerMachine'
-import type { User, Activity } from './Types'
-import { fromUnixTime } from 'date-fns'
+import { db } from './firebase'
 
 export type ActivitySummaryProps = {
   activity: Activity
+  penalties: ActivityModifier[]
 }
 export type AdminProps = {
   user: User
@@ -112,6 +115,22 @@ export const useInitMachine = (activity: Activity) => {
   }
 }
 
+export const usePenalties = (activity: Activity) => {
+  const [penalties, setPenalties] = useState<Record<string, Activity>>()
+
+  useEffect(() => {
+    if (activity) {
+      onValue(ref(db, `activity-activitymodifiers`), (penaltiesSnapshot) => {
+        console.log('🚀 penaltiesSnapshot', penaltiesSnapshot.val())
+        if (!activity) return null
+        setPenalties(penaltiesSnapshot.val())
+      })
+    }
+  }, [activity])
+
+  return { penalties }
+}
+
 const ActivitySummary = ({ activity }: ActivitySummaryProps) => {
   const {
     user,
@@ -126,6 +145,8 @@ const ActivitySummary = ({ activity }: ActivitySummaryProps) => {
     handleResetElapsed,
     handlePenalty,
   } = useInitMachine(activity)
+
+  const { penalties } = usePenalties(activity)
 
   const startOfTomorrow = fromUnixTime(activity.startOfTomorrow / 1000)
 

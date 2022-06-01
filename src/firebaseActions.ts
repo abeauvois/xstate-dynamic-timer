@@ -1,39 +1,32 @@
 import { getTime } from 'date-fns'
-import { child, push, ref, update } from 'firebase/database'
+import { child, push, ref, update, get } from 'firebase/database'
 import { db } from './firebase'
 
-import type { Activity, Effect, Family, Task, User } from './Types'
+import type { Activity, ActivityModifier, Family, Task, User } from './Types'
 import { getStartOfTomorrow } from './utils'
 
 const dbRef = ref(db)
 
-const addEffect = (user: User, task: Task, effect: Effect) => {
-  /**
-   * u1 issues a penalty (effect e1) to u2 on task "gaming"
-   *
-   * users-tasks/u2/gaming = {has: true, assigned: false }
-   * users-effects/u1/e1 = {issuer: true}
-   * effects-tasks/e1/gaming = {}
-   *
-   * OR
-   *
-   * users-tasks-effects/u2/gaming/e1 = {from: u1, to:u2, on:gaming, impact:{duration: -1}}
-   *
-   */
+const addActivityPenalty = (activity: Activity, activityModifier: ActivityModifier) => {
+  const modifierId = push(child(ref(db), 'activitymodifier')).key
 
-  const newEffectId = push(child(ref(db), 'effects')).key
-
-  // Write the new post's data simultaneously in the effects list and the user's post list.
+  // Write the new post's data simultaneously in the activitymodifier list and the activity's post list.
   const updates = {} as Record<string, any>
 
-  updates[`/effects/${newEffectId}`] = effect
-  updates['/users-tasks-effects/' + `${user.id}/${task.id}/${newEffectId}`] = effect
+  updates[`/activitymodifiers/${activityModifier.name}`] = activityModifier
+  updates[
+    `/activity-activitymodifiers/${activity.user.id}/${activity.task.id}/${activityModifier.name}`
+  ] = [
+    {
+      ...activityModifier,
+      id: modifierId,
+    },
+  ]
 
   return update(ref(db), updates)
 }
 
 const addUser = (user: User, family: Family) => {
-
   const updates = {} as Record<string, any>
 
   updates[`/users/${user.id}`] = user
@@ -44,14 +37,19 @@ const addUser = (user: User, family: Family) => {
 }
 
 const addActivity = (user: User, task: Task) => {
-
   const newActivityKey = push(ref(db, 'activities')).key
   const start = getStartOfTomorrow()
 
   const updates = {} as Record<string, any>
 
   updates[`/tasks/${task.id}`] = task
-  updates[`/activities/${user.id}/${task.id}`] = { id: newActivityKey, user, task, state: 'idle', startOfTomorrow: start }
+  updates[`/activities/${user.id}/${task.id}`] = {
+    id: newActivityKey,
+    user,
+    task,
+    state: 'idle',
+    startOfTomorrow: start,
+  }
 
   return update(dbRef, updates)
 }
@@ -66,4 +64,21 @@ const setActivityState = (activity: Activity, state: Activity['state']) => {
   return update(dbRef, updates)
 }
 
-export { addUser, addActivity, setActivityState }
+const getPenalties = (activity: Activity) => {
+  const penalties = {} as Record<string, any>
+
+  return get(child(dbRef, `/activity-activitymodifiers/${activity.user.id}/${activity.task.id}`))
+    .then((snapshot) => {
+      if (snapshot.exists()) {
+        console.log(snapshot.val())
+        return snapshot.val()
+      } else {
+        console.log('No data available')
+      }
+    })
+    .catch((error) => {
+      console.error(error)
+    })
+}
+
+export { addUser, addActivity, setActivityState, addActivityPenalty, getPenalties }
